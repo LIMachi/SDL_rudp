@@ -1,212 +1,204 @@
 #ifndef RUDP_H
 # define RUDP_H
 
-# include <rudp_header.h>
+#include <SDL2/SDL_net.h>
 
-/*
-** RUDP_TIMEOUT: if a client/server was not active for Xms, close the connection
-** default: 5000
-*/
+typedef struct s_queue_mode		t_queue_mode;
+typedef struct s_packet_out		t_packet_out;
+typedef struct s_rudp_window	t_rudp_window;
+typedef struct s_rudp_peer		t_rudp_peer;
+typedef struct s_rudp			t_rudp;
 
-# define RUDP_TIMEOUT 5000
-
-/*
-** RUDP_RESEND_DELAY: interval in ms between two sending of the same packet
-** default: 10
-*/
-
-# define RUDP_RESEND_DELAY 10
-
-/*
-** RUDP_RESEND_TRIES: number of times the packet will be resent before
-** considered definitely lost
-** default: 100
-*/
-
-# define RUDP_RESEND_TRIES 100
-
-//perte de packet:
-//methode 1: accepter uniquement les packets dans l'ordre d'ack
-//methode 2: detecter la perte et demander un renvoi (reception)
-//methode 3: renvoyer les packets jusqu'a validation de l'arrivée (envoi)
-
-//la methode 1 peut produire des pertes conséquentes de temps
-//la methode 2 est plus stable mais si la demande de renvois est perdu, peut
-//perdre du temps (moins que la methode 1, n'affecte que peux la congestion)
-//la methode 3 est la plus rapide mais risque de produire une congestion
-//importante
-
-//en methode 2, les packets transitant sont les suivants:
-//wildcard: receptionable sans connection (udp) (un seul packet)
-//renvoi: cible un client pour renvoyer un packet
-//connect: cible un serveur pour tenter une connection
-//disconnect: serveur/client, signale la fin d'une connection
-//segment: 1-plusieurs packet contenant de la donnée brute
-//validation: renvoyé par connect/disconnect
-//null: keep-alive
-
-//tous les packets ont un identifiant d'envoi (ack) et un checksum (a la fin)
-
-//quand un packet est reçu, il est dabord testé pour voir si il est valide
-//(header/checksum/etc)
-//on regarde si il vient d'une connection inconnue, si oui on regarde si c'est
-//un packet de connection, si ce n'est pas le cas on renvois un
-//LRUDP_SEG_NO_CONNECTION, sinon on tente de connecter le client (si la
-//connection ne marche pas on renvois un LRUDP_SEG_NO_CONNECTION), si ça marche
-//on renvois LRUDP_SEG_VALIDATION et on utilise le ack de la connection comme
-//base pour ce client
-//les packets wild sont traité tel quel, sans buffering
-
-typedef enum	e_rudp_segment_type
+enum							e_state
 {
-	LRUDP_SEG_NULL = 0,
-	LRUDP_SEG_WILD = 1,
-	LRUDP_SEG_SEND_BACK = 2,
-	LRUDP_SEG_CONNECT = 3,
-	LRUDP_SEG_DISCONNECT = 4,
-	LRUDP_SEG_DATA = 5,
-	LRUDP_SEG_VALIDATION = 6,
-	LRUDP_SEG_NO_CONNECTION = 7
+	RUDP_STATE_INIT,
+	RUDP_STATE_ACTIVE,
+	RUDP_STATE_CLOSING,
+	RUDP_STATE_CLOSED
 };
 
-# pragma pack(push, 1)
-
-typedef Uint16	t_checksum;
-
-/*
-** at most data_length is 1000 bytes
-*/
-
-/*
-** data_length is only used by data and wild segments
-** ack is used by CONNECT, DISCONNECT and DATA
-** sequence number is only used by DATA
-*/
-
-typedef struct	s_rudp_segment_head
+enum							e_state_flags
 {
-	Uint16		type : 6;
-	Uint16		data_length : 10;
-	Uint16		ack;
-	Uint16		sequence_number;
-}				t_rudp_segment_head;
+	RUDP_STATE_FLAGS_CLOSED = 0b00000111,
+	RUDP_STATE_FLAGS_INIT = 0b01001111,
+	RUDP_STATE_FLAGS_ACTIVE = 0b01111111,
+	RUDP_STATE_FLAGS_CLOSING = 0b00111011
+};
 
-typedef struct	s_rudp_default_segment
+enum							e_type
 {
-	t_rudp_segment_head	head;
-	Uint8				body[0];
-}				t_rudp_default_segment;
+	RUDP_TYPE_NULL = 0,
+	RUDP_TYPE_FREE = 1,
+	RUDP_TYPE_SYN = 2,
+	RUDP_TYPE_ACK = 3,
+	RUDP_TYPE_DATA = 4,
+	RUDP_TYPE_FIN = 5,
+	RUDP_TYPE_NOCONN = 6
+};
 
-typedef struct s_rudp_default_segment	t_rudp_wild_segment;
-typedef struct s_rudp_default_segment	t_rudp_data_segment;
-
-typedef struct	s_rudp_send_bakc_segment
+enum							e_type_bit
 {
-	t_rudp_segment_head	head;
-	Uint16				ack;
-	Uint16				sequence_number;
-	t_checksum			checksum;
-}				t_rudp_send_bakc_segment;
-
-typedef Uint32	t_uid;
-
-typedef struct	s_rudp_connect_segment
-{
-	t_rudp_segment_head	head;
-	t_checksum			checksum;
-}				t_rudp_connect_segment;
-
-typedef struct	s_rudp_disconnect_segment
-{
-	t_rudp_segment_head	head;
-	t_uid				id;
-	t_checksum			checksum;
-}				t_rudp_disconnect_segment;
-
-typedef struct	s_rudp_validation_segment
-{
-	t_rudp_segment_head	head;
-	t_uid				id;
-	t_checksum			checksum;
-}				t_rudp_validation_segment;
-
-# pragma pack(pop)
-
-typedef struct	s_rdup_packet_holder
-{
-
-}				t_rudp_packet_holder;
-
-typedef struct	s_rudp_client
-{
-	struct s_rudp_client	*next;
-	IPaddress				target;
-	Uint16					local_port;
-	Uint16					ack;
-	t_uid					id;
-}				t_rudp_client;
-
-typedef struct	s_rudp
-{
-	t_rudp_client	*clients;
-}				t_rudp;
+	RUDP_TYPE_BIT_NULL = 1 << RUDP_TYPE_NULL,
+	RUDP_TYPE_BIT_FREE = 1 << RUDP_TYPE_FREE,
+	RUDP_TYPE_BIT_SYN = 1 << RUDP_TYPE_SYN,
+	RUDP_TYPE_BIT_ACK = 1 << RUDP_TYPE_ACK,
+	RUDP_TYPE_BIT_DATA = 1 << RUDP_TYPE_DATA,
+	RUDP_TYPE_BIT_FIN = 1 << RUDP_TYPE_FIN,
+	RUDP_TYPE_BIT_NOCONN = 1 << RUDP_TYPE_NOCONN
+};
 
 /*
-** prepare threads that will do the IO
-** the pointer returned will be used by all functions of this library
+** RUDP_NEED_ACK:
+**   RUDP_TYPE_BIT_SYN
+**   RUDP_TYPE_BIT_DATA
+**   RUDP_TYPE_BIT_FIN
 */
 
-t_rudp			*rudp_init(void);
+#define RUDP_NEED_ACK   0b00110100
 
 /*
-** oppen a connection between your port local_port and the port target_port of
-** the server/peer address, this function might block for up to RUDP_TIMEOUT ms
-** if NULL is returned, an error occured
+** RUDP_RESET_TIME:
+**   RUDP_TYPE_NULL
+**   RUDP_TYPE_SYN
+**   RUDP_TYPE_ACK
+**   RUDP_TYPE_DATA
 */
 
-t_rudp_client	*rudp_connect(t_rudp *rudp, const char *address, Uint16 target_port, Uint16 local_port);
+#define RUDP_RESET_TIME 0b00011101
 
 /*
-** queue data, this data is guaranteed to arrive in the same order
-** return 0 on success
-** return an error code on failure (ex: queue is full)
+** suggested ports for peer/client/server
 */
 
-int				rudp_send(t_rudp *rudp, t_rudp_client *target, Uint8 *data, Uint16 size);
+#define RUDP_PEER_PORT 0x4242
+#define RUDP_SERVER_PORT 0x4444
 
 /*
-** retrieve data, this data is guaranteed to be in the same order as when sent
-** return a positive size if data was read
-** return 0 if there was no data to read
-** return a negative error code if somthing appened (ex: connection closed)
+** maximum number of packet transiting between 2 peer
 */
 
-int				rudp_receive(t_rudp *rudp, t_rudp_client *target, Uint8 *data, Uint16 size);
+#define RUDP_MAX_WINDOW 64
 
 /*
-** will broadcast the data to all ip, the data is not guranteed to arrive
+** delay after wich a syn packet is considered lost (default aggresive: 250ms)
 */
 
-int				rudp_wild(t_rudp *rudp, Uint16 port, Uint8 *data, Uint16 size);
+#define RUDP_SYN_TIMEOUT 250
+
+struct							s_queue_mode
+{
+	Uint8						need_ack : 1;
+	Uint8						can_timeout : 1;
+	Uint16						ack;
+	int							(*on_ack)(t_rudp*, t_rudp_peer*, void *);
+	void						*on_ack_data;
+	Uint32						timeout;
+	int							(*on_timeout)(t_rudp*, t_rudp_peer*, void *);
+	void						*on_timeout_data;
+	Uint32						delay;
+};
+
+struct							s_packet_out
+{
+	struct s_packet_out			*next;
+	UDPpacket					*packet;
+	t_queue_mode				mode;
+	Uint32						tick_queued;
+	Uint8						finished : 1;
+};
+
+struct							s_rudp_window
+{
+	Uint32						size;
+	UDPpacket					in[RUDP_MAX_WINDOW];
+	t_packet_out				out[RUDP_MAX_WINDOW];
+	t_packet_out				*queue;
+};
+
+struct							s_rudp_peer
+{
+	Uint8						instigator;
+	Uint32						last_recv;
+	Uint16						seq_no;
+	Uint32						state;
+	IPaddress					targeted;
+	t_rudp_window				window;
+};
+
+struct							s_rudp
+{
+	Uint16						port_in;
+	Uint16						port_out;
+	UDPsocket					listener_socket;
+	UDPsocket					sender_socket;
+	Uint32						nb_connections;
+	Uint32						used_connections;
+	int							*running;
+	t_rudp_peer					*peers;
+};
 
 /*
-** ping the peer/server to make sure the connection isn't closed due to
-** innactivity (return 0 if the connection is still active, an error code
-** otherwise)
+** common:
 */
 
-int				rudp_keep_alive(t_rudp *rudp, t_rudp_client *target);
+t_rudp_peer						*find_peer(t_rudp *rudp, IPaddress target);
+t_rudp_peer						*new_peer(t_rudp *rudp, IPaddress target);
+t_rudp							*rudp(Uint16 port_in, Uint16 port_out,
+										Uint32 maximum_number_of_connections);
+int								start_rudp(t_rudp *rudp);
+void							stop_rudp(t_rudp *rudp);
 
 /*
-** close a connection
+** listener:
 */
 
-int				rudp_disconnect(t_rudp *rudp, t_rudp_client *client);
+int								listener_thread(t_rudp *rudp);
+void							listener_free_msg(t_rudp *rudp,
+													UDPpacket *pack);
 
 /*
-** stop the rudp thread, all data is freed
+** -> states:
 */
 
-int				rudp_close(t_rudp *rudp);
+int								listener_closed_state(t_rudp *rudp,
+														UDPpacket *pack,
+														t_rudp_peer *peer);
+int								listener_init_state(t_rudp *rudp,
+														UDPpacket *pack,
+														t_rudp_peer *peer);
+int								listener_active_state(t_rudp *rudp,
+														UDPpacket *pack,
+														t_rudp_peer *peer);
+int								listener_closing_state(t_rudp *rudp,
+														UDPpacket *pack,
+														t_rudp_peer *peer);
+
+/*
+** sender:
+*/
+
+int								queue_packet(t_rudp *rudp, t_rudp_peer *peer,
+										UDPpacket *packet, t_queue_mode mode);
+int								queue_syn_msg(t_rudp *rudp, t_rudp_peer *peer);
+
+/*
+** msg:
+*/
+
+int								msg_acknowledge(t_rudp *rudp, Uint32 target,
+												Uint16 ack);
+int								msg_no_connection(t_rudp *rudp, Uint32 target);
+
+/*
+** utility:
+*/
+
+int								in_set(int v, size_t l, int s[]);
+Uint16							read_16(const Uint8 *data);
+Uint32							read_32(const Uint8 *data);
+Uint64							read_64(const Uint8 *data);
+void							write_16(Uint8 *data, Uint16 v);
+void							write_32(Uint8 *data, Uint32 v);
+void							write_64(Uint8 *data, Uint64 v);
 
 #endif

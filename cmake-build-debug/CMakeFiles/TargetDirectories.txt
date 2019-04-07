@@ -1,3 +1,0 @@
-/Users/hmartzol/Desktop/SDL_rudp/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/Users/hmartzol/Desktop/SDL_rudp/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/hmartzol/Desktop/SDL_rudp/cmake-build-debug/CMakeFiles/libsdl_rudp.a.dir

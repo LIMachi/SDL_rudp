@@ -1,4 +1,0 @@
-/Users/hmartzol/.brew/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/hmartzol/Desktop/SDL_rudp
--- Configuring done
--- Generating done
--- Build files have been written to: /Users/hmartzol/Desktop/SDL_rudp/cmake-build-debug
