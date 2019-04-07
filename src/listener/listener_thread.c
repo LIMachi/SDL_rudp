@@ -66,6 +66,7 @@ int listener_thread(t_rudp *rudp)
 				listener_closed_state(rudp, pack, NULL);
 		}
 		// timedout();
+		// sender();
 	}
 	SDLNet_FreePacket(pack);
 	return (0);

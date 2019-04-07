@@ -157,6 +157,20 @@ struct							s_rudp
 };
 
 /*
+** interface:
+*/
+
+t_rudp							*rudp_init(Uint16 port_in, Uint16 port_out,
+										Uint32 maximum_number_of_connections);
+int								rudp_close(t_rudp *rudp);
+int								rudp_connect(t_rudp *rudp, const char ip[]);
+int								rudp_disconnect(t_rudp *rudp, int id);
+int								rudp_send(t_rudp *rudp, int id, void *data,
+											size_t size);
+int								rudp_receive(t_rudp *rudp, int id, void *data,
+											size_t max_size);
+
+/*
 ** common:
 */
 
@@ -221,6 +235,8 @@ int								msg_no_connection(t_rudp *rudp, Uint32 target);
 ** utility:
 */
 
+Uint32							get_my_local_ip(void);
+void							stringify_ip(Uint32 addr, char buff[15]);
 int								in_set(int v, size_t l, int s[]);
 Uint16							read_16(const Uint8 *data);
 Uint32							read_32(const Uint8 *data);

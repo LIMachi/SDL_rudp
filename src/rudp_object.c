@@ -22,7 +22,8 @@ t_rudp	*rudp_fail(t_rudp *out)
 ** if port_in == 0 || port_out == 0 -> invalid connection
 */
 
-t_rudp	*rudp(Uint16 port_in, Uint16 port_out, Uint32 maximum_number_of_connections)
+t_rudp	*rudp(Uint16 port_in, Uint16 port_out,
+			Uint32 maximum_number_of_connections)
 {
 	t_rudp	*out;
 
