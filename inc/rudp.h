@@ -104,13 +104,29 @@ struct							s_packet_out
 	UDPpacket					*packet;
 	t_queue_mode				mode;
 	Uint32						tick_queued;
-	Uint8						finished : 1;
+	Uint8						not_finished : 1;
+};
+
+/*
+** the only type of packet to be bufferized is data
+** all other packet are treated as is, ack is kept for
+** the seq fields are ignored in reassembled_data
+*/
+
+struct							s_received_data
+{
+	struct s_received_data		*next;
+	Uint16						seq_no;
+	Uint16						seq_start;
+	Uint16						seq_len;
+	size_t						size;
+	void						*data;
 };
 
 struct							s_rudp_window
 {
-	Uint32						size;
-	UDPpacket					in[RUDP_MAX_WINDOW];
+	struct s_received_data		*received_data;
+	struct s_received_data		*reassembled_data;
 	t_packet_out				out[RUDP_MAX_WINDOW];
 	t_packet_out				*queue;
 };
@@ -121,6 +137,9 @@ struct							s_rudp_peer
 	Uint32						last_recv;
 	Uint16						seq_no;
 	Uint32						state;
+	int							(*state_function)(t_rudp*,
+													UDPpacket*,
+													t_rudp_peer*);
 	IPaddress					targeted;
 	t_rudp_window				window;
 };
@@ -141,12 +160,19 @@ struct							s_rudp
 ** common:
 */
 
-t_rudp_peer						*find_peer(t_rudp *rudp, IPaddress target);
-t_rudp_peer						*new_peer(t_rudp *rudp, IPaddress target);
 t_rudp							*rudp(Uint16 port_in, Uint16 port_out,
 										Uint32 maximum_number_of_connections);
 int								start_rudp(t_rudp *rudp);
 void							stop_rudp(t_rudp *rudp);
+
+/*
+** peer:
+*/
+
+t_rudp_peer						*find_peer(t_rudp *rudp, IPaddress target);
+t_rudp_peer						*new_peer(t_rudp *rudp, IPaddress target);
+int								peer_switch_state(t_rudp_peer *peer,
+													Uint32 state);
 
 /*
 ** listener:
@@ -155,6 +181,8 @@ void							stop_rudp(t_rudp *rudp);
 int								listener_thread(t_rudp *rudp);
 void							listener_free_msg(t_rudp *rudp,
 													UDPpacket *pack);
+int								received_ack(t_rudp *rudp, t_rudp_peer *peer,
+												Uint16 ack);
 
 /*
 ** -> states:

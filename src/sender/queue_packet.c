@@ -31,14 +31,14 @@ int					queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 	{
 		i = -1;
 		out = NULL;
-		while (out == NULL && ++i < (int)peer->window.size)
-			if (peer->window.out[i].finished)
+		while (out == NULL && ++i < RUDP_MAX_WINDOW)
+			if (!peer->window.out[i].not_finished)
 				out = &peer->window.out[i];
 		if (out == NULL && (out = SDL_malloc(sizeof(t_packet_out))) == NULL)
 			return (-1);
-		*out = (t_packet_out){.finished = 0, .mode = mode, .packet = packet,
+		*out = (t_packet_out){.not_finished = 1, .mode = mode, .packet = packet,
 			.next = NULL, .tick_queued = SDL_GetTicks()};
-		if (i == (int)peer->window.size)
+		if (i == RUDP_MAX_WINDOW)
 			i_queue(&peer->window, out);
 		return (0);
 	}

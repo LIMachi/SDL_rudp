@@ -13,13 +13,14 @@
 /*
 ** SYN -> start INIT routine, not instigator, ACK, NOCONN if no place left,
 **   SYN otherwise
-** DATA, NULL -> NOCONN
-** FIN, ACK, NOCONN -> ignored
+** DATA, NULL, FIN -> NOCONN
+** ACK, NOCONN -> ignored
 */
 
 int		listener_closed_state(t_rudp *rudp, UDPpacket *pack, t_rudp_peer *peer)
 {
-	if (in_set(pack->data[0], 2, (int[2]){RUDP_TYPE_DATA, RUDP_TYPE_NULL}))
+	if (in_set(pack->data[0], 3, (int[3]){RUDP_TYPE_DATA, RUDP_TYPE_NULL,
+			RUDP_TYPE_FIN}))
 		msg_no_connection(rudp, pack->address.host);
 	if (pack->data[0] == RUDP_TYPE_SYN)
 	{
@@ -29,8 +30,8 @@ int		listener_closed_state(t_rudp *rudp, UDPpacket *pack, t_rudp_peer *peer)
 		if (peer == NULL)
 			return (!msg_no_connection(rudp, pack->address.host));
 		peer->seq_no = read_16(&pack->data[1]);
-		peer->state = RUDP_STATE_INIT;
 		peer->instigator = 0;
+		peer_switch_state(peer, RUDP_STATE_INIT);
 		queue_syn_msg(rudp, peer);
 	}
 	return (0);

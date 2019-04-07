@@ -47,28 +47,26 @@ enum	e_type
 int listener_thread(t_rudp *rudp)
 {
 	UDPpacket		*pack;
-	int				(*state_functions[5])(t_rudp*, UDPpacket*, t_rudp_peer*);
 	t_rudp_peer		*peer;
 
 	pack = SDLNet_AllocPacket((Uint16)-1);
-	state_functions[RUDP_STATE_INIT] = listener_init_state;
-	state_functions[RUDP_STATE_ACTIVE] = listener_active_state;
-	state_functions[RUDP_STATE_CLOSING] = listener_closing_state;
-	state_functions[RUDP_STATE_CLOSED] = listener_closed_state;
 	while (*rudp->running)
+	{
 		if (SDLNet_UDP_Recv(rudp->listener_socket, pack))
 		{
 			if (pack->data[0] == RUDP_TYPE_FREE)
 			{
 				listener_free_msg(rudp, pack);
-				continue ;
+				continue;
 			}
 			peer = find_peer(rudp, pack->address);
 			if (peer != NULL)
-				state_functions[peer->state](rudp, pack, peer);
+				peer->state_function(rudp, pack, peer);
 			else
-				state_functions[RUDP_STATE_CLOSED](rudp, pack, NULL);
+				listener_closed_state(rudp, pack, NULL);
 		}
+		// timedout();
+	}
 	SDLNet_FreePacket(pack);
 	return (0);
 }
