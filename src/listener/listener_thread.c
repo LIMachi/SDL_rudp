@@ -44,7 +44,32 @@ enum	e_type
 };
 */
 
-int listener_thread(t_rudp *rudp)
+void	timedout(t_rudp *rudp)
+{
+	Uint32	i;
+	Uint32	tick;
+
+	tick = SDL_GetTicks();
+	i = (Uint32)-1;
+	while (++i < rudp->nb_connections)
+		if (rudp->peers[i].state != RUDP_STATE_CLOSED
+		&& rudp->peers[i].last_recv + RUDP_CONNECTION_TIMEOUT < tick)
+		{
+			//potential timedout callback
+			peer_switch_state(&rudp->peers[i], RUDP_STATE_CLOSED);
+		}
+}
+
+/*
+** FREE and NOCONN are always treated the same way no mater the state
+** ACK result in NOCONN in CLOSED state, and is used in any other state
+** NULL result in timer reset in any non-CLOSED state
+** SYN is always ACK, no matter the state, but can be followed by a NOCONN
+** DATA is always ACK but only accepted in ACTIVE state, NOCONN otherwise
+** FIN is always ACK but only accepted in ACTIVE state, can NOCONN
+*/
+
+int		listener_thread(t_rudp *rudp)
 {
 	UDPpacket		*pack;
 	t_rudp_peer		*peer;
@@ -55,18 +80,19 @@ int listener_thread(t_rudp *rudp)
 		if (SDLNet_UDP_Recv(rudp->listener_socket, pack))
 		{
 			if (pack->data[0] == RUDP_TYPE_FREE)
-			{
 				listener_free_msg(rudp, pack);
-				continue;
-			}
-			peer = find_peer(rudp, pack->address);
-			if (peer != NULL)
-				peer->state_function(rudp, pack, peer);
 			else
-				listener_closed_state(rudp, pack, NULL);
+			{
+				peer = find_peer(rudp, pack->address);
+				if (pack->data[0] == RUDP_TYPE_NOCONN)
+					received_noconn(rudp, peer);
+				else if (peer != NULL)
+					peer->state_function(rudp, pack, peer);
+				else
+					listener_closed_state(rudp, pack, NULL);
+			}
 		}
-		// timedout();
-		// sender();
+		timedout(rudp);
 	}
 	SDLNet_FreePacket(pack);
 	return (0);

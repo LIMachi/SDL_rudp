@@ -5,7 +5,7 @@ t_rudp_peer	*find_peer(t_rudp *rudp, IPaddress target)
 	Uint32	i;
 
 	i = (Uint32)-1;
-	while (++i < rudp->used_connections)
+	while (++i < rudp->nb_connections)
 		if (rudp->peers[i].targeted.host == target.host
 			&& rudp->peers[i].targeted.port == target.port)
 			return (&rudp->peers[i]);

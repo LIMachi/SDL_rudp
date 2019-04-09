@@ -2,13 +2,44 @@
 
 t_rudp	*rudp_fail(t_rudp *out)
 {
+	Uint32	i;
+
 	if (out->listener_socket != NULL)
 		SDLNet_UDP_Close(out->listener_socket);
 	if (out->sender_socket != NULL)
 		SDLNet_UDP_Close(out->sender_socket);
+	i = (Uint32)-1;
+	while (++i < out->nb_connections)
+		if (out->peers[i].mutex != NULL)
+			SDL_DestroyMutex(out->peers[i].mutex);
 	SDL_free(out->peers);
 	SDL_free(out);
 	return (NULL);
+}
+
+int		init_peers(t_rudp *out)
+{
+	Uint32	i;
+	Uint32	j;
+
+	i = (Uint32)-1;
+	while (++i < out->nb_connections)
+	{
+		out->peers[i] = (t_rudp_peer){
+			.window = {.out = {}, .received_data = NULL,
+				.reassembled_data = NULL, .queue = NULL},
+			.state = RUDP_STATE_CLOSED, .last_recv = 0, .instigator = 0,
+			.seq_no = 0, .mutex = SDL_CreateMutex(),
+			.state_function = listener_closed_state, .targeted = {}};
+		if (out->peers[i].mutex == NULL)
+			return (-1);
+		j = (Uint32)-1;
+		while (++j < RUDP_MAX_WINDOW)
+			out->peers[i].window.out[j] = (t_packet_out){
+				.not_finished = 0, .packet = NULL, .next = NULL,
+				.mode = {}, .tick_queued = 0};
+	}
+	return (0);
 }
 
 /*
@@ -31,19 +62,21 @@ t_rudp	*rudp(Uint16 port_in, Uint16 port_out,
 		return (NULL);
 	if ((out = (t_rudp*)SDL_malloc(sizeof(t_rudp))) == NULL)
 		return (NULL);
+	out->nb_connections = maximum_number_of_connections;
 	if ((out->peers = (t_rudp_peer*)SDL_malloc(sizeof(t_rudp_peer)
-											   * maximum_number_of_connections)) == NULL)
+									* maximum_number_of_connections)) == NULL)
 	{
 		SDL_free(out);
 		return (NULL);
 	}
+	if (init_peers(out))
+		return (rudp_fail(out));
 	out->port_in = port_in;
 	out->port_out = port_out;
 	if ((out->listener_socket = SDLNet_UDP_Open(port_in)) == NULL)
 		return (rudp_fail(out));
 	if ((out->sender_socket = SDLNet_UDP_Open(0)) == NULL)
 		return (rudp_fail(out));
-	out->nb_connections = maximum_number_of_connections;
 	out->used_connections = 0;
 	return (out);
 }

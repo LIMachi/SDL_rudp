@@ -1,7 +1,9 @@
 #ifndef RUDP_H
 # define RUDP_H
 
-#include <SDL2/SDL_net.h>
+# include <SDL2/SDL_net.h>
+
+# define RUDP_CONNECTION_TIMEOUT 5000
 
 typedef struct s_queue_mode		t_queue_mode;
 typedef struct s_packet_out		t_packet_out;
@@ -80,10 +82,18 @@ enum							e_type_bit
 #define RUDP_MAX_WINDOW 64
 
 /*
-** delay after wich a syn packet is considered lost (default aggresive: 250ms)
+** delay after wich a syn packet is considered lost (default aggresive: 500ms,
+**   recommended: same as CONNECTION_TIMEOUT: around 5000ms)
 */
 
-#define RUDP_SYN_TIMEOUT 250
+#define RUDP_SYN_TIMEOUT 500
+
+/*
+** delay between resending unacknowledged packets (default aggresive: 5ms,
+**   recommended 30ms)
+*/
+
+#define RUDP_RESEND_TIMEOUT 5
 
 struct							s_queue_mode
 {
@@ -100,11 +110,12 @@ struct							s_queue_mode
 
 struct							s_packet_out
 {
+	struct s_packet_out			*prev;
 	struct s_packet_out			*next;
 	UDPpacket					*packet;
 	t_queue_mode				mode;
 	Uint32						tick_queued;
-	Uint8						not_finished : 1;
+	Uint32						last_sent;
 };
 
 /*
@@ -127,7 +138,6 @@ struct							s_rudp_window
 {
 	struct s_received_data		*received_data;
 	struct s_received_data		*reassembled_data;
-	t_packet_out				out[RUDP_MAX_WINDOW];
 	t_packet_out				*queue;
 };
 
@@ -137,6 +147,7 @@ struct							s_rudp_peer
 	Uint32						last_recv;
 	Uint16						seq_no;
 	Uint32						state;
+	SDL_mutex					*mutex;
 	int							(*state_function)(t_rudp*,
 													UDPpacket*,
 													t_rudp_peer*);
@@ -197,6 +208,8 @@ void							listener_free_msg(t_rudp *rudp,
 													UDPpacket *pack);
 int								received_ack(t_rudp *rudp, t_rudp_peer *peer,
 												Uint16 ack);
+void							received_noconn(t_rudp *rudp,
+												t_rudp_peer *peer);
 
 /*
 ** -> states:

@@ -14,7 +14,7 @@
 ** SYN -> start INIT routine, not instigator, ACK, NOCONN if no place left,
 **   SYN otherwise
 ** DATA, NULL, FIN -> NOCONN
-** ACK, NOCONN -> ignored
+** ACK -> ignored
 */
 
 int		listener_closed_state(t_rudp *rudp, UDPpacket *pack, t_rudp_peer *peer)

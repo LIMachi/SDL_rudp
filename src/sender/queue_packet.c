@@ -30,16 +30,14 @@ int					queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 	if (mode.need_ack || mode.delay > 0)
 	{
 		i = -1;
-		out = NULL;
-		while (out == NULL && ++i < RUDP_MAX_WINDOW)
-			if (!peer->window.out[i].not_finished)
-				out = &peer->window.out[i];
-		if (out == NULL && (out = SDL_malloc(sizeof(t_packet_out))) == NULL)
+		if ((out = SDL_malloc(sizeof(t_packet_out))) == NULL)
 			return (-1);
-		*out = (t_packet_out){.not_finished = 1, .mode = mode, .packet = packet,
-			.next = NULL, .tick_queued = SDL_GetTicks()};
-		if (i == RUDP_MAX_WINDOW)
-			i_queue(&peer->window, out);
+		*out = (t_packet_out){.mode = mode, .packet = packet,
+			.next = NULL, .tick_queued = SDL_GetTicks(),
+			.last_sent = SDL_GetTicks() - RUDP_RESEND_TIMEOUT};
+		SDL_LockMutex(peer->mutex);
+		i_queue(&peer->window, out);
+		SDL_UnlockMutex(peer->mutex);
 		return (0);
 	}
 	i = SDLNet_UDP_Send(rudp->sender_socket, -1, packet);
