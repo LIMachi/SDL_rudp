@@ -20,24 +20,18 @@ t_rudp	*rudp_fail(t_rudp *out)
 int		init_peers(t_rudp *out)
 {
 	Uint32	i;
-	Uint32	j;
 
 	i = (Uint32)-1;
 	while (++i < out->nb_connections)
 	{
 		out->peers[i] = (t_rudp_peer){
-			.window = {.out = {}, .received_data = NULL,
-				.reassembled_data = NULL, .queue = NULL},
+			.window = {.received_data = NULL, .reassembled_data = NULL,
+				.queue = NULL},
 			.state = RUDP_STATE_CLOSED, .last_recv = 0, .instigator = 0,
 			.seq_no = 0, .mutex = SDL_CreateMutex(),
 			.state_function = listener_closed_state, .targeted = {}};
 		if (out->peers[i].mutex == NULL)
 			return (-1);
-		j = (Uint32)-1;
-		while (++j < RUDP_MAX_WINDOW)
-			out->peers[i].window.out[j] = (t_packet_out){
-				.not_finished = 0, .packet = NULL, .next = NULL,
-				.mode = {}, .tick_queued = 0};
 	}
 	return (0);
 }

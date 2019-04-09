@@ -1,15 +1,5 @@
 #include <rudp.h>
 
-t_packet_out	*remove_packet(t_packet_out *pack_out)
-{
-	t_packet_out	*r;
-
-	r = pack_out->next;
-	SDL_free(pack_out->packet);
-	SDL_free(pack_out);
-	return (r);
-}
-
 t_packet_out	*resend(t_rudp *rudp, t_rudp_peer *peer, t_packet_out *pack_out,
 	Uint32 tick)
 {
@@ -58,4 +48,5 @@ int		sender_thread(t_rudp *rudp)
 			SDL_UnlockMutex(rudp->peers[i].mutex);
 		}
 	}
+	return (0);
 }

@@ -31,7 +31,6 @@ void	peer_destroy_window(t_rudp_window *win)
 
 int		peer_switch_state(t_rudp_peer *peer, Uint32 state)
 {
-	int				i;
 	static int		(*state_functions[4])(t_rudp*, UDPpacket*, t_rudp_peer*) = {
 		[RUDP_STATE_INIT] = listener_closing_state,
 		[RUDP_STATE_ACTIVE] = listener_active_state,
@@ -45,9 +44,6 @@ int		peer_switch_state(t_rudp_peer *peer, Uint32 state)
 		peer_destroy_window(&peer->window);
 		peer->window = (t_rudp_window){.received_data = NULL,
 									.reassembled_data = NULL, .queue = NULL};
-		i = -1;
-		while (++i < RUDP_MAX_WINDOW)
-			peer->window.out[i] = (t_packet_out){.not_finished = 0};
 	}
 	peer->state_function = state_functions[state];
 	peer->state = state;

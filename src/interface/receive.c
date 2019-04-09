@@ -1,6 +1,6 @@
 #include <rudp.h>
 
-int		rudp_receive(t_rudp *rudp, int id, void *data, size_t size)
+int		rudp_receive(t_rudp *rudp, int id, void *data, int size)
 {
 	(void)rudp;
 	(void)id;

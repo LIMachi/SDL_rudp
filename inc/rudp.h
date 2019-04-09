@@ -4,6 +4,7 @@
 # include <SDL2/SDL_net.h>
 
 # define RUDP_CONNECTION_TIMEOUT 5000
+# define RUDP_MAXIMUM_DATA_SIZE 255
 
 typedef struct s_queue_mode		t_queue_mode;
 typedef struct s_packet_out		t_packet_out;
@@ -177,9 +178,9 @@ int								rudp_close(t_rudp *rudp);
 int								rudp_connect(t_rudp *rudp, const char ip[]);
 int								rudp_disconnect(t_rudp *rudp, int id);
 int								rudp_send(t_rudp *rudp, int id, void *data,
-											size_t size);
+											int size);
 int								rudp_receive(t_rudp *rudp, int id, void *data,
-											size_t max_size);
+											int max_size);
 
 /*
 ** common:
@@ -198,6 +199,7 @@ t_rudp_peer						*find_peer(t_rudp *rudp, IPaddress target);
 t_rudp_peer						*new_peer(t_rudp *rudp, IPaddress target);
 int								peer_switch_state(t_rudp_peer *peer,
 													Uint32 state);
+t_packet_out					*remove_packet(t_packet_out *pack_out);
 
 /*
 ** listener:

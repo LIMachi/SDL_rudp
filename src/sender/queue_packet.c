@@ -10,9 +10,15 @@ static inline void	i_queue(t_rudp_window *win, t_packet_out *out)
 		while (tmp->next != NULL)
 			tmp = tmp->next;
 		tmp->next = out;
+		out->prev = tmp;
+		out->next = NULL;
 	}
 	else
+	{
 		win->queue = out;
+		out->prev = NULL;
+		out->next = NULL;
+	}
 }
 
 /*
