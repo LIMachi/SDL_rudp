@@ -37,16 +37,16 @@ int					queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 	{
 		i = -1;
 		if ((out = SDL_malloc(sizeof(t_packet_out))) == NULL)
-			return (-1);
+			return (RUDP_ERROR_NO_MEMORY);
 		*out = (t_packet_out){.mode = mode, .packet = packet,
 			.next = NULL, .tick_queued = SDL_GetTicks(),
 			.last_sent = SDL_GetTicks() - RUDP_RESEND_TIMEOUT};
 		SDL_LockMutex(peer->mutex);
 		i_queue(&peer->window, out);
 		SDL_UnlockMutex(peer->mutex);
-		return (0);
+		return (RUDP_ERROR_OK);
 	}
 	i = SDLNet_UDP_Send(rudp->sender_socket, -1, packet);
 	SDL_free(packet);
-	return (!i);
+	return (i == 1 ? RUDP_ERROR_OK : RUDP_ERROR_SDLNET);
 }

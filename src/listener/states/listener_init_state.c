@@ -2,7 +2,7 @@
 
 /*
 ** ACK -> switch state to ACTIVE (the switch is donne by the callback)
-** SYN -> ACK
+** SYN -> ACK, switch state to ACTIVE if INSTIGATOR
 ** DATA, FIN, NULL -> NOCONN
 */
 
@@ -16,6 +16,10 @@ int		listener_init_state(t_rudp *rudp, UDPpacket *pack, t_rudp_peer *peer)
 	else if (pack->data[0] == RUDP_TYPE_ACK)
 		received_ack(rudp, peer, read_16(&pack->data[1]));
 	else if (pack->data[0] == RUDP_TYPE_SYN)
+	{
 		msg_acknowledge(rudp, pack->address.host, read_16(&pack->data[1]));
+		if (peer->instigator && peer->hand_shook)
+			peer_switch_state(peer, RUDP_STATE_ACTIVE);
+	}
 	return (0);
 }

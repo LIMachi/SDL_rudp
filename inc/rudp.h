@@ -12,6 +12,19 @@ typedef struct s_rudp_window	t_rudp_window;
 typedef struct s_rudp_peer		t_rudp_peer;
 typedef struct s_rudp			t_rudp;
 
+enum							e_rudp_error
+{
+	RUDP_ERROR_OK = 0,
+	RUDP_ERROR_NULL_POINTER = -1,
+	RUDP_ERROR_INVALID_ID = -2,
+	RUDP_ERROR_CLOSED_CONNECTION = -3,
+	RUDP_ERROR_NO_MEMORY = -4,
+	RUDP_ERROR_SDLNET = -5,
+	RUDP_ERROR_INVALID_SIZE = -6,
+	RUDP_ERROR_MAX_CONNECTIONS = -7,
+	RUDP_CONNECTION_REFUSED = -8
+};
+
 enum							e_state
 {
 	RUDP_STATE_INIT,
@@ -144,7 +157,8 @@ struct							s_rudp_window
 
 struct							s_rudp_peer
 {
-	Uint8						instigator;
+	Uint8						instigator : 1;
+	Uint8						hand_shook : 1;
 	Uint32						last_recv;
 	Uint16						seq_no;
 	Uint32						state;

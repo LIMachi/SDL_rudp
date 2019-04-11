@@ -1,22 +1,22 @@
 #include <rudp.h>
 
-int	acknowledged_syn(t_rudp* rudp, t_rudp_peer *peer, void *unused)
+int	acknowledged_syn(t_rudp* unused1, t_rudp_peer *peer, void *unused2)
 {
-	(void)unused;
-	(void)rudp;
-	if (peer->instigator)
-	{
-
-	}
+	(void)unused1;
+	(void)unused2;
+	peer->hand_shook = 1;
+	if (!peer->instigator && peer->state == RUDP_STATE_INIT)
+		peer_switch_state(peer, RUDP_STATE_ACTIVE);
 	return (0);
 }
 
-int	timed_out_syn(t_rudp* rudp, t_rudp_peer *peer, void *unused)
+int	timed_out_syn(t_rudp* unused1, t_rudp_peer *peer, void *unused2)
 {
-	(void)unused;
-	(void)peer;
-	(void)rudp;
-	// clean_peer(peer);
+	(void)unused1;
+	(void)unused2;
+	peer->hand_shook = 0;
+	peer->instigator = 0;
+	peer_switch_state(peer, RUDP_STATE_CLOSED);
 	return (0);
 }
 
