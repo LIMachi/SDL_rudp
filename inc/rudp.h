@@ -162,7 +162,7 @@ struct							s_rudp_peer
 	Uint32						last_recv;
 	Uint16						seq_no;
 	Uint32						state;
-	SDL_mutex					*mutex;
+	// SDL_mutex					*mutex;
 	int							(*state_function)(t_rudp*,
 													UDPpacket*,
 													t_rudp_peer*);
@@ -178,8 +178,10 @@ struct							s_rudp
 	UDPsocket					sender_socket;
 	Uint32						nb_connections;
 	Uint32						used_connections;
-	int							*running;
+	int							running;
 	t_rudp_peer					*peers;
+	SDL_Thread					*listener_thread;
+	SDL_Thread					*sender_thread;
 };
 
 /*
@@ -248,6 +250,7 @@ int								listener_closing_state(t_rudp *rudp,
 ** sender:
 */
 
+int								sender_thread(t_rudp *rudp);
 int								queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 										UDPpacket *packet, t_queue_mode mode);
 int								queue_syn_msg(t_rudp *rudp, t_rudp_peer *peer);

@@ -30,22 +30,21 @@ int		sender_thread(t_rudp *rudp)
 	t_packet_out	*pack_out;
 	Uint32			tick;
 
-	while (*rudp->running)
+	while (rudp->running)
 	{
 		i = (Uint32)-1;
 		tick = SDL_GetTicks();
 		while (++i < rudp->nb_connections)
 		{
-			SDL_LockMutex(rudp->peers[i].mutex);
+			// SDL_LockMutex(rudp->peers[i].mutex);
 			if (rudp->peers[i].state != RUDP_STATE_CLOSED)
 			{
-				SDL_LockMutex(rudp->peers[i].mutex);
-				j = 0;
+				j = (Uint32)-1;
 				pack_out = rudp->peers[i].window.queue;
-				while (j < RUDP_MAX_WINDOW && pack_out != NULL)
+				while (++j < RUDP_MAX_WINDOW && pack_out != NULL)
 					pack_out = resend(rudp, &rudp->peers[i], pack_out, tick);
 			}
-			SDL_UnlockMutex(rudp->peers[i].mutex);
+			// SDL_UnlockMutex(rudp->peers[i].mutex);
 		}
 	}
 	return (0);

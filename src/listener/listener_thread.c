@@ -75,10 +75,11 @@ int		listener_thread(t_rudp *rudp)
 	t_rudp_peer		*peer;
 
 	pack = SDLNet_AllocPacket((Uint16)-1);
-	while (*rudp->running)
+	while (rudp->running)
 	{
 		if (SDLNet_UDP_Recv(rudp->listener_socket, pack))
 		{
+			printf("received something of type: %hhu\n", pack->data[0]);
 			if (pack->data[0] == RUDP_TYPE_FREE)
 				listener_free_msg(rudp, pack);
 			else

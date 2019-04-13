@@ -4,6 +4,7 @@ static inline void	i_queue(t_rudp_window *win, t_packet_out *out)
 {
 	t_packet_out	*tmp;
 
+	printf("queue error?\n");
 	if (win->queue != NULL)
 	{
 		tmp = win->queue;
@@ -19,6 +20,7 @@ static inline void	i_queue(t_rudp_window *win, t_packet_out *out)
 		out->prev = NULL;
 		out->next = NULL;
 	}
+	printf("no\n");
 }
 
 /*
@@ -33,6 +35,7 @@ int					queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 	t_packet_out	*out;
 	int				i;
 
+	printf("in queue_packet\n");
 	if (mode.need_ack || mode.delay > 0)
 	{
 		i = -1;
@@ -41,9 +44,11 @@ int					queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 		*out = (t_packet_out){.mode = mode, .packet = packet,
 			.next = NULL, .tick_queued = SDL_GetTicks(),
 			.last_sent = SDL_GetTicks() - RUDP_RESEND_TIMEOUT};
-		SDL_LockMutex(peer->mutex);
+		printf("lock mutex\n");
+		// SDL_LockMutex(peer->mutex);
+		printf("ok\n");
 		i_queue(&peer->window, out);
-		SDL_UnlockMutex(peer->mutex);
+		// SDL_UnlockMutex(peer->mutex);
 		return (RUDP_ERROR_OK);
 	}
 	i = SDLNet_UDP_Send(rudp->sender_socket, -1, packet);

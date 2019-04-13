@@ -4,6 +4,7 @@ int	acknowledged_syn(t_rudp* unused1, t_rudp_peer *peer, void *unused2)
 {
 	(void)unused1;
 	(void)unused2;
+	printf("aknowledged syn\n");
 	peer->hand_shook = 1;
 	if (!peer->instigator && peer->state == RUDP_STATE_INIT)
 		peer_switch_state(peer, RUDP_STATE_ACTIVE);
@@ -14,6 +15,7 @@ int	timed_out_syn(t_rudp* unused1, t_rudp_peer *peer, void *unused2)
 {
 	(void)unused1;
 	(void)unused2;
+	printf("timedout syn\n");
 	peer->hand_shook = 0;
 	peer->instigator = 0;
 	peer_switch_state(peer, RUDP_STATE_CLOSED);

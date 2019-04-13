@@ -9,9 +9,9 @@ t_rudp	*rudp_fail(t_rudp *out)
 	if (out->sender_socket != NULL)
 		SDLNet_UDP_Close(out->sender_socket);
 	i = (Uint32)-1;
-	while (++i < out->nb_connections)
-		if (out->peers[i].mutex != NULL)
-			SDL_DestroyMutex(out->peers[i].mutex);
+	// while (++i < out->nb_connections)
+	// 	if (out->peers[i].mutex != NULL)
+	// 		SDL_DestroyMutex(out->peers[i].mutex);
 	SDL_free(out->peers);
 	SDL_free(out);
 	return (NULL);
@@ -28,10 +28,10 @@ int		init_peers(t_rudp *out)
 			.window = {.received_data = NULL, .reassembled_data = NULL,
 				.queue = NULL},
 			.state = RUDP_STATE_CLOSED, .last_recv = 0, .instigator = 0,
-			.seq_no = 0, .mutex = SDL_CreateMutex(),
+			.seq_no = 0, /*.mutex = SDL_CreateMutex(),*/
 			.state_function = listener_closed_state, .targeted = {}};
-		if (out->peers[i].mutex == NULL)
-			return (-1);
+		// if (out->peers[i].mutex == NULL)
+		// 	return (-1);
 	}
 	return (0);
 }

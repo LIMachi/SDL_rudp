@@ -1,5 +1,7 @@
 include Makefiles/default_var.mk
 
+DEBUG := 1
+
 NAME := libsdl_rudp.a
 
 CFLAGS += -D_REENTRANT
