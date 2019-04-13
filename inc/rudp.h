@@ -162,7 +162,7 @@ struct							s_rudp_peer
 	Uint32						last_recv;
 	Uint16						seq_no;
 	Uint32						state;
-	// SDL_mutex					*mutex;
+	SDL_mutex					*mutex;
 	int							(*state_function)(t_rudp*,
 													UDPpacket*,
 													t_rudp_peer*);
@@ -215,7 +215,8 @@ t_rudp_peer						*find_peer(t_rudp *rudp, IPaddress target);
 t_rudp_peer						*new_peer(t_rudp *rudp, IPaddress target);
 int								peer_switch_state(t_rudp_peer *peer,
 													Uint32 state);
-t_packet_out					*remove_packet(t_packet_out *pack_out);
+t_packet_out					*remove_packet(t_rudp_window *window,
+												t_packet_out *pack_out);
 
 /*
 ** listener:
