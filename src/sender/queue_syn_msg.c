@@ -1,24 +1,22 @@
 #include <rudp.h>
 
-int	acknowledged_syn(t_rudp* unused1, t_rudp_peer *peer, void *unused2)
+int	acknowledged_syn(t_rudp* rudp, t_rudp_peer *peer, void *unused)
 {
-	(void)unused1;
-	(void)unused2;
-	printf("aknowledged syn\n");
+	(void)unused;
+	printf("%s: aknowledged syn\n", rudp->name);
 	peer->hand_shook = 1;
 	if (!peer->instigator && peer->state == RUDP_STATE_INIT)
-		peer_switch_state(peer, RUDP_STATE_ACTIVE);
+		peer_switch_state(rudp, peer, RUDP_STATE_ACTIVE);
 	return (0);
 }
 
-int	timed_out_syn(t_rudp* unused1, t_rudp_peer *peer, void *unused2)
+int	timed_out_syn(t_rudp* rudp, t_rudp_peer *peer, void *unused)
 {
-	(void)unused1;
-	(void)unused2;
-	printf("timedout syn\n");
+	(void)unused;
+	printf("%s: timedout syn\n", rudp->name);
 	peer->hand_shook = 0;
 	peer->instigator = 0;
-	peer_switch_state(peer, RUDP_STATE_CLOSED);
+	peer_switch_state(rudp, peer, RUDP_STATE_CLOSED);
 	return (0);
 }
 
@@ -27,6 +25,7 @@ int	queue_syn_msg(t_rudp *rudp, t_rudp_peer *peer)
 	UDPpacket	*pack;
 	Uint16		ack;
 
+	printf("%s: queue syn: %d\n", rudp->name, peer->seq_no + 1);
 	if ((pack = SDL_malloc(sizeof(UDPpacket) + 3)) == NULL)
 		return (-1);
 	ack = ++peer->seq_no;

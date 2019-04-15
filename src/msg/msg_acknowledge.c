@@ -4,6 +4,7 @@ int		msg_acknowledge(t_rudp *rudp, Uint32 target, Uint16 ack)
 {
 	UDPpacket	*pack;
 
+	printf("%s: acknowledge: %d\n", rudp->name, ack);
 	if ((pack = SDL_malloc(sizeof(UDPpacket) + 3)) == NULL)
 		return (0);
 	*pack = (UDPpacket){.data = &((Uint8*)pack)[sizeof(UDPpacket)], .len = 3,

@@ -1,11 +1,12 @@
 #include <rudp.h>
 
-t_rudp	*rudp_init(Uint16 port_in, Uint16 port_out,
+t_rudp	*rudp_init(char *name, Uint16 port_in, Uint16 port_out,
 					Uint32 maximum_number_of_connections)
 {
 	t_rudp	*out;
 
 	out = rudp(port_in, port_out, maximum_number_of_connections);
+	out->name = name;
 	if (out == NULL)
 		return (NULL);
 	out->running = 1;

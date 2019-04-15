@@ -29,14 +29,15 @@ void	peer_destroy_window(t_rudp_window *win)
 	}
 }
 
-int		peer_switch_state(t_rudp_peer *peer, Uint32 state)
+int		peer_switch_state(t_rudp *rudp, t_rudp_peer *peer, Uint32 state)
 {
 	static int		(*state_functions[4])(t_rudp*, UDPpacket*, t_rudp_peer*) = {
-		[RUDP_STATE_INIT] = listener_closing_state,
+		[RUDP_STATE_INIT] = listener_init_state,
 		[RUDP_STATE_ACTIVE] = listener_active_state,
-		[RUDP_STATE_CLOSING] = listener_init_state,
+		[RUDP_STATE_CLOSING] = listener_closing_state,
 		[RUDP_STATE_CLOSED] = listener_closed_state};
 
+	printf("%s: new state: %s\n", rudp->name, stringify_rudp_state(state));
 	if (state == RUDP_STATE_CLOSED)
 	{
 		peer->last_recv = 0;

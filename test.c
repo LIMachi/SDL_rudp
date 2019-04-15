@@ -10,7 +10,7 @@ int	server(void *data)
 	running = data;
 	ip = &((char*)data)[1];
 	(void)ip;
-	rudp_obj = rudp_init(0x4444, 0x4242, 1);
+	rudp_obj = rudp_init("server", 0x4444, 0x4242, 1);
 	(void)rudp;
 	printf("server 1\n");
 	// id = rudp_connect(rudp_obj, ip);
@@ -33,7 +33,7 @@ int	client(void *data)
 
 	running = data;
 	ip = &((char*)data)[1];
-	rudp_obj = rudp_init(0x4242, 0x4444, 1);
+	rudp_obj = rudp_init("client", 0x4242, 0x4444, 1);
 	printf("client 1\n");
 	id = rudp_connect(rudp_obj, "127.0.0.1");
 	printf("client 2\n");
@@ -60,7 +60,7 @@ int	main(int argc, char *argv[])
 	ip[0] = 1;
 	s = SDL_CreateThread(server, "server", ip);
 	c = SDL_CreateThread(client, "client", ip);
-	SDL_Delay(500);
+	SDL_Delay(5000);
 	ip[0] = 0;
 	SDL_WaitThread(c, NULL);
 	SDL_WaitThread(s, NULL);

@@ -56,7 +56,7 @@ void	timedout(t_rudp *rudp)
 		&& rudp->peers[i].last_recv + RUDP_CONNECTION_TIMEOUT < tick)
 		{
 			//potential timedout callback
-			peer_switch_state(&rudp->peers[i], RUDP_STATE_CLOSED);
+			peer_switch_state(rudp, &rudp->peers[i], RUDP_STATE_CLOSED);
 		}
 }
 
@@ -79,7 +79,7 @@ int		listener_thread(t_rudp *rudp)
 	{
 		if (SDLNet_UDP_Recv(rudp->listener_socket, pack))
 		{
-			printf("received something of type: %hhu\n", pack->data[0]);
+			printf("%s: received something of type: %s\n", rudp->name, stringify_type(pack->data[0]));
 			if (pack->data[0] == RUDP_TYPE_FREE)
 				listener_free_msg(rudp, pack);
 			else

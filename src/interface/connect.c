@@ -27,7 +27,6 @@ int	rudp_connect(t_rudp *rudp, const char ip[])
 	IPaddress	ipa;
 	int			id;
 	t_rudp_peer	*peer;
-	Uint32		test;
 
 	if (rudp == NULL || ip == NULL)
 		return (RUDP_ERROR_NULL_POINTER);
@@ -37,22 +36,17 @@ int	rudp_connect(t_rudp *rudp, const char ip[])
 		;
 	if (id == (int)rudp->nb_connections)
 		return (RUDP_ERROR_MAX_CONNECTIONS);
-	printf("assigned id: %d\n", id);
 	SDLNet_ResolveHost(&ipa, ip, rudp->port_out);
 	peer = &rudp->peers[id];
 	peer->targeted = ipa;
 	peer->seq_no = 0;
 	peer->instigator = 1;
 	peer->hand_shook = 0;
-	peer_switch_state(peer, RUDP_STATE_INIT);
+	peer_switch_state(rudp, peer, RUDP_STATE_INIT);
 	peer->last_recv = SDL_GetTicks();
-	printf("error?\n");
 	queue_syn_msg(rudp, peer);
-	printf("syn msg queued\n");
-	test = SDL_GetTicks();
-	while (peer->state == RUDP_STATE_INIT && SDL_GetTicks() - test < 5000)
+	while (peer->state == RUDP_STATE_INIT)
 		;
-	printf("state changed\n");
 	if (peer->state != RUDP_STATE_ACTIVE)
 		return (RUDP_CONNECTION_REFUSED);
 	return (id);

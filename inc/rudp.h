@@ -182,13 +182,15 @@ struct							s_rudp
 	t_rudp_peer					*peers;
 	SDL_Thread					*listener_thread;
 	SDL_Thread					*sender_thread;
+	char						*name;
 };
 
 /*
 ** interface:
 */
 
-t_rudp							*rudp_init(Uint16 port_in, Uint16 port_out,
+t_rudp							*rudp_init(char *name, Uint16 port_in,
+										Uint16 port_out,
 										Uint32 maximum_number_of_connections);
 int								rudp_close(t_rudp *rudp);
 int								rudp_connect(t_rudp *rudp, const char ip[]);
@@ -213,7 +215,8 @@ void							stop_rudp(t_rudp *rudp);
 
 t_rudp_peer						*find_peer(t_rudp *rudp, IPaddress target);
 t_rudp_peer						*new_peer(t_rudp *rudp, IPaddress target);
-int								peer_switch_state(t_rudp_peer *peer,
+int								peer_switch_state(t_rudp *rudp,
+													t_rudp_peer *peer,
 													Uint32 state);
 t_packet_out					*remove_packet(t_rudp_window *window,
 												t_packet_out *pack_out);
@@ -270,6 +273,10 @@ int								msg_no_connection(t_rudp *rudp, Uint32 target);
 
 Uint32							get_my_local_ip(void);
 void							stringify_ip(Uint32 addr, char buff[15]);
+const char						*stringify_rudp_error(
+													enum e_rudp_error err_code);
+const char						*stringify_rudp_state(enum e_state state);
+const char						*stringify_type(enum e_type type);
 int								in_set(int v, size_t l, int s[]);
 Uint16							read_16(const Uint8 *data);
 Uint32							read_32(const Uint8 *data);

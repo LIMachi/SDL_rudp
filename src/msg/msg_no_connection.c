@@ -4,6 +4,7 @@ int		msg_no_connection(t_rudp *rudp, Uint32 target)
 {
 	UDPpacket	*pack;
 
+	printf("%s: queue no_conn\n", rudp->name);
 	if ((pack = SDL_malloc(sizeof(UDPpacket) + 1)) == NULL)
 		return (0);
 	*pack = (UDPpacket){.data = &((Uint8*)pack)[sizeof(UDPpacket)], .len = 1,

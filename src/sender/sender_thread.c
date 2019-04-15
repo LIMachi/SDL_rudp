@@ -13,7 +13,7 @@ t_packet_out	*resend(t_rudp *rudp, t_rudp_peer *peer, t_packet_out *pack_out,
 			return (remove_packet(&peer->window, pack_out));
 	}
 	else if (pack_out->mode.can_timeout
-	&& pack_out->mode.timeout > tick - pack_out->tick_queued)
+	&& pack_out->mode.timeout < tick - pack_out->tick_queued)
 	{
 		if (pack_out->mode.on_timeout != NULL)
 			pack_out->mode.on_timeout(rudp, peer,
