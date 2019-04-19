@@ -79,7 +79,7 @@ int		listener_thread(t_rudp *rudp)
 	{
 		if (SDLNet_UDP_Recv(rudp->listener_socket, pack))
 		{
-			printf("%s: received something of type: %s\n", rudp->name, stringify_type(pack->data[0]));
+			printf("%s: received: %s %d\n", rudp->name, stringify_type(pack->data[0]), pack->data[0] == RUDP_TYPE_ACK || pack->data[0] == RUDP_TYPE_SYN ? read_16(&pack->data[1]) : 0);
 			if (pack->data[0] == RUDP_TYPE_FREE)
 				listener_free_msg(rudp, pack);
 			else

@@ -100,7 +100,7 @@ enum							e_type_bit
 **   recommended: same as CONNECTION_TIMEOUT: around 5000ms)
 */
 
-#define RUDP_SYN_TIMEOUT 500
+#define RUDP_SYN_TIMEOUT 100
 
 /*
 ** delay between resending unacknowledged packets (default aggresive: 5ms,
@@ -114,10 +114,16 @@ struct							s_queue_mode
 	Uint8						need_ack : 1;
 	Uint8						can_timeout : 1;
 	Uint16						ack;
-	int							(*on_ack)(t_rudp*, t_rudp_peer*, void *);
+	int							(*on_ack)(t_rudp*,
+											t_rudp_peer*,
+											t_packet_out*,
+											void *);
 	void						*on_ack_data;
 	Uint32						timeout;
-	int							(*on_timeout)(t_rudp*, t_rudp_peer*, void *);
+	int							(*on_timeout)(t_rudp*,
+											t_rudp_peer*,
+											t_packet_out*,
+											void *);
 	void						*on_timeout_data;
 	Uint32						delay;
 };
@@ -161,6 +167,7 @@ struct							s_rudp_peer
 	Uint8						hand_shook : 1;
 	Uint32						last_recv;
 	Uint16						seq_no;
+	Uint16						target_seq_no;
 	Uint32						state;
 	SDL_mutex					*mutex;
 	int							(*state_function)(t_rudp*,
@@ -179,10 +186,12 @@ struct							s_rudp
 	Uint32						nb_connections;
 	Uint32						used_connections;
 	int							running;
+	Uint16						initial_seq_no;
 	t_rudp_peer					*peers;
 	SDL_Thread					*listener_thread;
 	SDL_Thread					*sender_thread;
 	char						*name;
+	enum e_rudp_error			errno;
 };
 
 /*
@@ -255,7 +264,7 @@ int								listener_closing_state(t_rudp *rudp,
 */
 
 int								sender_thread(t_rudp *rudp);
-int								queue_packet(t_rudp *rudp, t_rudp_peer *peer,
+t_packet_out					*queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 										UDPpacket *packet, t_queue_mode mode);
 int								queue_syn_msg(t_rudp *rudp, t_rudp_peer *peer);
 

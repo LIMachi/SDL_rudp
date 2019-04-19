@@ -29,7 +29,8 @@ int		listener_closed_state(t_rudp *rudp, UDPpacket *pack, t_rudp_peer *peer)
 			peer = new_peer(rudp, pack->address);
 		if (peer == NULL)
 			return (!msg_no_connection(rudp, pack->address.host));
-		peer->seq_no = read_16(&pack->data[1]);
+		peer->target_seq_no = read_16(&pack->data[1]);
+		peer->seq_no = rudp->initial_seq_no;
 		peer->instigator = 0;
 		peer_switch_state(rudp, peer, RUDP_STATE_INIT);
 		queue_syn_msg(rudp, peer);

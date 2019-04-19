@@ -65,6 +65,7 @@ t_rudp	*rudp(Uint16 port_in, Uint16 port_out,
 	}
 	if (init_peers(out))
 		return (rudp_fail(out));
+	out->initial_seq_no = 0;
 	out->port_in = port_in;
 	out->port_out = port_out;
 	if ((out->listener_socket = SDLNet_UDP_Open(port_in)) == NULL)

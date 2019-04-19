@@ -13,6 +13,14 @@ int		valid_param(t_rudp *rudp, int id, void *data, int size)
 	return (0);
 }
 
+int		acknowledge_data(t_rudp *rudp, t_rudp_peer *peer, t_packet_out *pack, void *data)
+{
+	(void)rudp;
+	(void)data;
+	remove_packet(&peer->window, pack);
+	return (0);
+}
+
 int		rudp_send(t_rudp *rudp, int id, void *data, int size)
 {
 	int				cut;
@@ -24,7 +32,7 @@ int		rudp_send(t_rudp *rudp, int id, void *data, int size)
 	if ((cut = valid_param(rudp, id, data, size)))
 		return (cut);
 	mode = (t_queue_mode){.delay = 0, .need_ack = 1, .can_timeout = 0,
-		.on_ack = NULL};
+		.on_ack = acknowledge_data};
 	len = (Uint16)(size / RUDP_MAXIMUM_DATA_SIZE);
 	len += size > len * RUDP_MAXIMUM_DATA_SIZE;
 	original_ack = rudp->peers[id].seq_no + (Uint16)1;
@@ -38,6 +46,7 @@ int		rudp_send(t_rudp *rudp, int id, void *data, int size)
 			.maxlen = cut, .len = cut, .address = {
 				.host = rudp->peers[id].targeted.host, .port = rudp->port_out}};
 		mode.ack = ++rudp->peers[id].seq_no;
+		mode.on_ack_data = pack;
 		pack->data[0] = RUDP_TYPE_DATA;
 		write_16(&pack->data[1], mode.ack);
 		write_16(&pack->data[3], original_ack);

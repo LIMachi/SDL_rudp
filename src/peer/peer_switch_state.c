@@ -38,7 +38,7 @@ int		peer_switch_state(t_rudp *rudp, t_rudp_peer *peer, Uint32 state)
 		[RUDP_STATE_CLOSED] = listener_closed_state};
 
 	printf("%s: new state: %s\n", rudp->name, stringify_rudp_state(state));
-	if (state == RUDP_STATE_CLOSED)
+	if (state == RUDP_STATE_CLOSED && peer->state != RUDP_STATE_CLOSED)
 	{
 		peer->last_recv = 0;
 		peer->instigator = 0;

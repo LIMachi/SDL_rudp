@@ -5,18 +5,19 @@ t_packet_out	*resend(t_rudp *rudp, t_rudp_peer *peer, t_packet_out *pack_out,
 {
 	if (pack_out->mode.delay + pack_out->tick_queued > tick)
 		return (pack_out);
-	if (pack_out->last_sent + RUDP_RESEND_TIMEOUT >= tick)
+	if (tick >= pack_out->last_sent + RUDP_RESEND_TIMEOUT)
 	{
+		printf("ticks '%s': %d   %d   %d   %d   %s\n", rudp->name, tick, pack_out->last_sent, pack_out->tick_queued, pack_out->mode.timeout, stringify_type(pack_out->packet->data[0]));
 		pack_out->last_sent = tick;
 		SDLNet_UDP_Send(rudp->sender_socket, -1, pack_out->packet);
 		if (!pack_out->mode.need_ack)
 			return (remove_packet(&peer->window, pack_out));
 	}
 	else if (pack_out->mode.can_timeout
-	&& pack_out->mode.timeout < tick - pack_out->tick_queued)
+	&& tick - pack_out->tick_queued > pack_out->mode.timeout)
 	{
 		if (pack_out->mode.on_timeout != NULL)
-			pack_out->mode.on_timeout(rudp, peer,
+			pack_out->mode.on_timeout(rudp, peer, pack_out,
 				pack_out->mode.on_timeout_data);
 		return (remove_packet(&peer->window, pack_out));
 	}

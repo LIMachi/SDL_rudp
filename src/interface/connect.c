@@ -39,7 +39,7 @@ int	rudp_connect(t_rudp *rudp, const char ip[])
 	SDLNet_ResolveHost(&ipa, ip, rudp->port_out);
 	peer = &rudp->peers[id];
 	peer->targeted = ipa;
-	peer->seq_no = 0;
+	peer->seq_no = rudp->initial_seq_no;
 	peer->instigator = 1;
 	peer->hand_shook = 0;
 	peer_switch_state(rudp, peer, RUDP_STATE_INIT);
