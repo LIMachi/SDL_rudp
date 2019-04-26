@@ -14,8 +14,11 @@ t_packet_out	*remove_packet(t_rudp_window *window, t_packet_out *pack_out)
 	if (r != NULL)
 		r->prev = pack_out->prev;
 	SDL_free(pack_out->packet);
+	pack_out->packet = NULL;
 	if (pack_out == window->queue)
-		window->queue = NULL;
-	// SDL_free(pack_out); //hack, should be freed, currently errored du to thread concurency?
+		window->queue = r;
+	pack_out->next = NULL;
+	pack_out->prev = NULL;
+	SDL_free(pack_out);
 	return (r);
 }

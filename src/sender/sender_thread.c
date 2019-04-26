@@ -7,7 +7,7 @@ t_packet_out	*resend(t_rudp *rudp, t_rudp_peer *peer, t_packet_out *pack_out,
 		return (pack_out);
 	if (tick >= pack_out->last_sent + RUDP_RESEND_TIMEOUT)
 	{
-		printf("ticks '%s': %d   %d   %d   %d   %s\n", rudp->name, tick, pack_out->last_sent, pack_out->tick_queued, pack_out->mode.timeout, stringify_type(pack_out->packet->data[0]));
+		// printf("%s: sending ack: %d\n", rudp->name, pack_out->mode.ack);
 		pack_out->last_sent = tick;
 		SDLNet_UDP_Send(rudp->sender_socket, -1, pack_out->packet);
 		if (!pack_out->mode.need_ack)
@@ -16,12 +16,24 @@ t_packet_out	*resend(t_rudp *rudp, t_rudp_peer *peer, t_packet_out *pack_out,
 	else if (pack_out->mode.can_timeout
 	&& tick - pack_out->tick_queued > pack_out->mode.timeout)
 	{
+		printf("%s: timed out: %d\n", rudp->name, pack_out->mode.ack);
 		if (pack_out->mode.on_timeout != NULL)
 			pack_out->mode.on_timeout(rudp, peer, pack_out,
 				pack_out->mode.on_timeout_data);
 		return (remove_packet(&peer->window, pack_out));
 	}
 	return (pack_out->next);
+}
+
+int		timedout(t_rudp *rudp, t_rudp_peer *peer, Uint32 tick)
+{
+	if (peer->last_recv + RUDP_CONNECTION_TIMEOUT < tick)
+	{
+		printf("%s: removing timedout\n", rudp->name);
+		peer_switch_state(rudp, peer, RUDP_STATE_CLOSED);
+		return (1);
+	}
+	return (0);
 }
 
 int		sender_thread(t_rudp *rudp)
@@ -38,7 +50,8 @@ int		sender_thread(t_rudp *rudp)
 		while (++i < rudp->nb_connections)
 		{
 			SDL_LockMutex(rudp->peers[i].mutex);
-			if (rudp->peers[i].state != RUDP_STATE_CLOSED)
+			if (rudp->peers[i].state != RUDP_STATE_CLOSED
+					&& !timedout(rudp, &rudp->peers[i], tick))
 			{
 				j = (Uint32)-1;
 				pack_out = rudp->peers[i].window.queue;
@@ -47,6 +60,7 @@ int		sender_thread(t_rudp *rudp)
 			}
 			SDL_UnlockMutex(rudp->peers[i].mutex);
 		}
+		SDL_Delay(2);
 	}
 	return (0);
 }

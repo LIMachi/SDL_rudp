@@ -19,21 +19,29 @@
 
 int		listener_closed_state(t_rudp *rudp, UDPpacket *pack, t_rudp_peer *peer)
 {
+	int	new;
+
 	if (in_set(pack->data[0], 3, (int[3]){RUDP_TYPE_DATA, RUDP_TYPE_NULL,
 			RUDP_TYPE_FIN}))
 		msg_no_connection(rudp, pack->address.host);
 	if (pack->data[0] == RUDP_TYPE_SYN)
 	{
-		msg_acknowledge(rudp, pack->address.host, read_16(&pack->data[1]));
+		msg_acknowledge(rudp, pack->address.host, read_32(&pack->data[1]));
 		if (peer == NULL)
+		{
+			new = 1;
 			peer = new_peer(rudp, pack->address);
+		}
+		else
+			new = 0;
 		if (peer == NULL)
 			return (!msg_no_connection(rudp, pack->address.host));
-		peer->target_seq_no = read_16(&pack->data[1]);
-		peer->seq_no = rudp->initial_seq_no;
+		peer->target_seq_no = read_32(&pack->data[1]);
 		peer->instigator = 0;
 		peer_switch_state(rudp, peer, RUDP_STATE_INIT);
 		queue_syn_msg(rudp, peer);
+		if (new)
+			SDL_UnlockMutex(peer->mutex);
 	}
 	return (0);
 }

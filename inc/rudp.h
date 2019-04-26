@@ -4,7 +4,7 @@
 # include <SDL2/SDL_net.h>
 
 # define RUDP_CONNECTION_TIMEOUT 5000
-# define RUDP_MAXIMUM_DATA_SIZE 255
+# define RUDP_MAXIMUM_DATA_SIZE 32768
 
 typedef struct s_queue_mode		t_queue_mode;
 typedef struct s_packet_out		t_packet_out;
@@ -113,7 +113,7 @@ struct							s_queue_mode
 {
 	Uint8						need_ack : 1;
 	Uint8						can_timeout : 1;
-	Uint16						ack;
+	Uint32						ack;
 	int							(*on_ack)(t_rudp*,
 											t_rudp_peer*,
 											t_packet_out*,
@@ -147,9 +147,9 @@ struct							s_packet_out
 struct							s_received_data
 {
 	struct s_received_data		*next;
-	Uint16						seq_no;
-	Uint16						seq_start;
-	Uint16						seq_len;
+	Uint32						seq_no;
+	Uint32						seq_start;
+	Uint32						seq_len;
 	size_t						size;
 	void						*data;
 };
@@ -166,8 +166,8 @@ struct							s_rudp_peer
 	Uint8						instigator : 1;
 	Uint8						hand_shook : 1;
 	Uint32						last_recv;
-	Uint16						seq_no;
-	Uint16						target_seq_no;
+	Uint32						seq_no;
+	Uint32						target_seq_no;
 	Uint32						state;
 	SDL_mutex					*mutex;
 	int							(*state_function)(t_rudp*,
@@ -186,7 +186,7 @@ struct							s_rudp
 	Uint32						nb_connections;
 	Uint32						used_connections;
 	int							running;
-	Uint16						initial_seq_no;
+	Uint32						initial_seq_no;
 	t_rudp_peer					*peers;
 	SDL_Thread					*listener_thread;
 	SDL_Thread					*sender_thread;
@@ -205,7 +205,7 @@ int								rudp_close(t_rudp *rudp);
 int								rudp_connect(t_rudp *rudp, const char ip[]);
 int								rudp_disconnect(t_rudp *rudp, int id);
 int								rudp_send(t_rudp *rudp, int id, void *data,
-											int size);
+											Uint64 size);
 int								rudp_receive(t_rudp *rudp, int id, void *data,
 											int max_size);
 
@@ -238,7 +238,7 @@ int								listener_thread(t_rudp *rudp);
 void							listener_free_msg(t_rudp *rudp,
 													UDPpacket *pack);
 int								received_ack(t_rudp *rudp, t_rudp_peer *peer,
-												Uint16 ack);
+												Uint32 ack);
 void							received_noconn(t_rudp *rudp,
 												t_rudp_peer *peer);
 
@@ -273,7 +273,7 @@ int								queue_syn_msg(t_rudp *rudp, t_rudp_peer *peer);
 */
 
 int								msg_acknowledge(t_rudp *rudp, Uint32 target,
-												Uint16 ack);
+												Uint32 ack);
 int								msg_no_connection(t_rudp *rudp, Uint32 target);
 
 /*

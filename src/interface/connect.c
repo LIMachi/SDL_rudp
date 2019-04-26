@@ -32,8 +32,9 @@ int	rudp_connect(t_rudp *rudp, const char ip[])
 		return (RUDP_ERROR_NULL_POINTER);
 	id = -1;
 	while (++id < (int)rudp->nb_connections
+			&& !SDL_LockMutex(rudp->peers[id].mutex)
 			&& rudp->peers[id].state != RUDP_STATE_CLOSED)
-		;
+		SDL_UnlockMutex(rudp->peers[id].mutex);
 	if (id == (int)rudp->nb_connections)
 		return (RUDP_ERROR_MAX_CONNECTIONS);
 	SDLNet_ResolveHost(&ipa, ip, rudp->port_out);
@@ -45,6 +46,7 @@ int	rudp_connect(t_rudp *rudp, const char ip[])
 	peer_switch_state(rudp, peer, RUDP_STATE_INIT);
 	peer->last_recv = SDL_GetTicks();
 	queue_syn_msg(rudp, peer);
+	SDL_UnlockMutex(rudp->peers[id].mutex);
 	while (peer->state == RUDP_STATE_INIT)
 		;
 	if (peer->state != RUDP_STATE_ACTIVE)

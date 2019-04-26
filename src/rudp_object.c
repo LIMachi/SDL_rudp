@@ -24,6 +24,7 @@ int		init_peers(t_rudp *out)
 	i = (Uint32)-1;
 	while (++i < out->nb_connections)
 	{
+		printf("BIG TEST\n");
 		out->peers[i] = (t_rudp_peer){
 			.window = {.received_data = NULL, .reassembled_data = NULL,
 				.queue = NULL},
@@ -32,6 +33,7 @@ int		init_peers(t_rudp *out)
 			.state_function = listener_closed_state, .targeted = {}};
 		if (out->peers[i].mutex == NULL)
 			return (-1);
+		printf("BIG TEST OK: %p\n", out->peers[i].mutex);
 	}
 	return (0);
 }
@@ -57,14 +59,17 @@ t_rudp	*rudp(Uint16 port_in, Uint16 port_out,
 	if ((out = (t_rudp*)SDL_malloc(sizeof(t_rudp))) == NULL)
 		return (NULL);
 	out->nb_connections = maximum_number_of_connections;
+	printf("test 1\n");
 	if ((out->peers = (t_rudp_peer*)SDL_malloc(sizeof(t_rudp_peer)
 									* maximum_number_of_connections)) == NULL)
 	{
 		SDL_free(out);
 		return (NULL);
 	}
+	printf("test 2\n");
 	if (init_peers(out))
 		return (rudp_fail(out));
+	printf("test 3\n");
 	out->initial_seq_no = 0;
 	out->port_in = port_in;
 	out->port_out = port_out;

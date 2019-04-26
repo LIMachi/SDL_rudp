@@ -27,18 +27,17 @@ int	timed_out_syn(t_rudp* rudp, t_rudp_peer *peer, t_packet_out *unused1,
 int	queue_syn_msg(t_rudp *rudp, t_rudp_peer *peer)
 {
 	UDPpacket	*pack;
-	Uint16		ack;
+	Uint32		ack;
 
 	printf("%s: queue syn: %d\n", rudp->name, peer->seq_no + 1);
-	if ((pack = SDL_malloc(sizeof(UDPpacket) + 3)) == NULL)
+	if ((pack = SDL_malloc(sizeof(UDPpacket) + 5)) == NULL)
 		return (-1);
 	ack = ++peer->seq_no;
-	*pack = (UDPpacket){.data = &((Uint8*)pack)[sizeof(UDPpacket)], .len = 3,
-		.maxlen = 3, .address = {
+	*pack = (UDPpacket){.data = &((Uint8*)pack)[sizeof(UDPpacket)], .len = 5,
+		.maxlen = 5, .address = {
 			.port = rudp->port_out, .host = peer->targeted.host}};
 	pack->data[0] = RUDP_TYPE_SYN;
-	pack->data[1] = (Uint8)(ack >> 8);
-	pack->data[2] = (Uint8)ack;
+	write_32(&pack->data[1], ack);
 	queue_packet(rudp, peer, pack, (t_queue_mode){.need_ack = 1,
 		.can_timeout = 1, .ack = ack, .on_ack = acknowledged_syn,
 		.on_ack_data = NULL, .timeout = RUDP_SYN_TIMEOUT,

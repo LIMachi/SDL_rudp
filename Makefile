@@ -1,6 +1,7 @@
 include Makefiles/default_var.mk
 
 DEBUG := 1
+#SANITIZE := 1
 
 NAME := libsdl_rudp.a
 

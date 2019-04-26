@@ -4,6 +4,7 @@ static inline void	i_queue(t_rudp_window *win, t_packet_out *out)
 {
 	t_packet_out	*tmp;
 
+	out->next = NULL;
 	if (win->queue != NULL)
 	{
 		tmp = win->queue;
@@ -11,13 +12,11 @@ static inline void	i_queue(t_rudp_window *win, t_packet_out *out)
 			tmp = tmp->next;
 		tmp->next = out;
 		out->prev = tmp;
-		out->next = NULL;
 	}
 	else
 	{
 		win->queue = out;
 		out->prev = NULL;
-		out->next = NULL;
 	}
 }
 
@@ -35,6 +34,7 @@ t_packet_out		*queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 
 	if (mode.need_ack || mode.delay > 0)
 	{
+		// printf("%s: queuing packet with ack: %d\n", rudp->name, mode.ack);
 		i = -1;
 		if ((out = SDL_malloc(sizeof(t_packet_out))) == NULL)
 		{
