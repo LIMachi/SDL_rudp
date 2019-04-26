@@ -26,8 +26,8 @@ int		init_peers(t_rudp *out)
 	{
 		printf("BIG TEST\n");
 		out->peers[i] = (t_rudp_peer){
-			.window = {.received_data = NULL, .reassembled_data = NULL,
-				.queue = NULL},
+			.window = {.received_data = NULL, .queue = NULL,
+				.assembled_data = {.data = NULL}},
 			.state = RUDP_STATE_CLOSED, .last_recv = 0, .instigator = 0,
 			.seq_no = 0, .mutex = SDL_CreateMutex(),
 			.state_function = listener_closed_state, .targeted = {}};

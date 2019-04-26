@@ -6,8 +6,16 @@
 # define RUDP_CONNECTION_TIMEOUT 5000
 # define RUDP_MAXIMUM_DATA_SIZE 32768
 
+# define RUDP_OFFSET_TYPE 0
+# define RUDP_OFFSET_ACK 1
+# define RUDP_OFFSET_CUT 5
+# define RUDP_OFFSET_LEN 9
+# define RUDP_OFFSET_SIZE 13
+# define RUDP_OFFSET_DATA 15
+
 typedef struct s_queue_mode		t_queue_mode;
 typedef struct s_packet_out		t_packet_out;
+typedef struct s_received_data	t_received_data;
 typedef struct s_rudp_window	t_rudp_window;
 typedef struct s_rudp_peer		t_rudp_peer;
 typedef struct s_rudp			t_rudp;
@@ -147,18 +155,28 @@ struct							s_packet_out
 struct							s_received_data
 {
 	struct s_received_data		*next;
+	struct s_received_data		*prev;
 	Uint32						seq_no;
 	Uint32						seq_start;
 	Uint32						seq_len;
 	size_t						size;
-	void						*data;
+	Uint8						data[0];
+};
+
+typedef struct s_assembled_data	t_assembled_data;
+
+struct							s_assembled_data
+{
+	size_t						size;
+	size_t						cursor;
+	Uint8						*data;
 };
 
 struct							s_rudp_window
 {
-	struct s_received_data		*received_data;
-	struct s_received_data		*reassembled_data;
-	t_packet_out				*queue;
+	t_received_data		*received_data;
+	t_assembled_data	assembled_data;
+	t_packet_out		*queue;
 };
 
 struct							s_rudp_peer
@@ -237,6 +255,8 @@ t_packet_out					*remove_packet(t_rudp_window *window,
 int								listener_thread(t_rudp *rudp);
 void							listener_free_msg(t_rudp *rudp,
 													UDPpacket *pack);
+int								received_data(t_rudp *rudp, t_rudp_peer *peer,
+												UDPpacket *pack);
 int								received_ack(t_rudp *rudp, t_rudp_peer *peer,
 												Uint32 ack);
 void							received_noconn(t_rudp *rudp,

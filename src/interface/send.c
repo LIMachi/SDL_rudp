@@ -49,20 +49,20 @@ int		rudp_send(t_rudp *rudp, int id, void *data, Uint64 size)
 			psize = (Uint16)(size - cut * RUDP_MAXIMUM_DATA_SIZE);
 		else
 			psize = RUDP_MAXIMUM_DATA_SIZE;
-		pack = SDL_malloc(sizeof(UDPpacket) + psize + 15);
+		pack = SDL_malloc(sizeof(UDPpacket) + psize + RUDP_OFFSET_DATA);
 		if (pack == NULL)
 			return (-1);
 		*pack = (UDPpacket){.data = &((Uint8*)pack)[sizeof(UDPpacket)],
-			.maxlen = psize + 15, .len = psize + 15, .address = {
-				.host = rudp->peers[id].targeted.host, .port = rudp->port_out}};
+			.maxlen = psize + RUDP_OFFSET_DATA, .len = psize + RUDP_OFFSET_DATA,
+	.address = {.host = rudp->peers[id].targeted.host, .port = rudp->port_out}};
 		mode.on_ack_data = pack;
 		mode.ack = ++rudp->peers[id].seq_no;
-		pack->data[0] = RUDP_TYPE_DATA;
-		write_32(&pack->data[1], mode.ack);
-		write_32(&pack->data[5], cut);
-		write_32(&pack->data[9], len);
-		write_16(&pack->data[13], psize);
-		SDL_memcpy(&pack->data[15], data, (size_t)psize);
+		pack->data[RUDP_OFFSET_TYPE] = RUDP_TYPE_DATA;
+		write_32(&pack->data[RUDP_OFFSET_ACK], mode.ack);
+		write_32(&pack->data[RUDP_OFFSET_CUT], cut);
+		write_32(&pack->data[RUDP_OFFSET_LEN], len);
+		write_16(&pack->data[RUDP_OFFSET_SIZE], psize);
+		SDL_memcpy(&pack->data[RUDP_OFFSET_DATA], data, (size_t)psize);
 		if (queue_packet(rudp, &rudp->peers[id], pack, mode) == NULL)
 		{
 			SDL_UnlockMutex(rudp->peers[id].mutex);

@@ -16,14 +16,6 @@ void	peer_destroy_window(t_rudp *rudp, t_rudp_window *win)
 		tmp1->next = NULL;
 		SDL_free(tmp1);
 	}
-	it1 = win->reassembled_data;
-	while (it1 != NULL)
-	{
-		tmp1 = it1;
-		it1 = it1->next;
-		tmp1->next = NULL;
-		SDL_free(tmp1);
-	}
 	it2 = win->queue;
 	c = 0;
 	while (it2 != NULL)
@@ -56,8 +48,7 @@ int		peer_switch_state(t_rudp *rudp, t_rudp_peer *peer, Uint32 state)
 		peer->last_recv = 0;
 		peer->instigator = 0;
 		peer_destroy_window(rudp, &peer->window);
-		peer->window = (t_rudp_window){.received_data = NULL,
-									.reassembled_data = NULL, .queue = NULL};
+		peer->window = (t_rudp_window){.received_data = NULL, .queue = NULL};
 	}
 	peer->state_function = state_functions[state];
 	peer->state = state;

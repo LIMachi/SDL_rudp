@@ -17,7 +17,8 @@ int		listener_init_state(t_rudp *rudp, UDPpacket *pack, t_rudp_peer *peer)
 		received_ack(rudp, peer, read_32(&pack->data[1]));
 	else if (pack->data[0] == RUDP_TYPE_SYN)
 	{
-		msg_acknowledge(rudp, pack->address.host, read_32(&pack->data[1]));
+		peer->target_seq_no = read_32(&pack->data[RUDP_OFFSET_ACK]) + 1;
+		msg_acknowledge(rudp, pack->address.host, read_32(&pack->data[RUDP_OFFSET_ACK]));
 		if (peer->instigator && peer->hand_shook)
 			peer_switch_state(rudp, peer, RUDP_STATE_ACTIVE);
 	}
