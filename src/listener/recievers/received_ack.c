@@ -10,6 +10,10 @@ int		received_ack(t_rudp *rudp, t_rudp_peer *peer, Uint32 ack)
 	int				i;
 	t_packet_out	*out;
 
+	if (ack == 654323)
+	{
+		printf("test\n");
+	}
 	i = -1;
 	out = peer->window.queue;
 	peer->last_recv = SDL_GetTicks();
@@ -20,7 +24,6 @@ int		received_ack(t_rudp *rudp, t_rudp_peer *peer, Uint32 ack)
 			if (out->mode.on_ack != NULL)
 				out->mode.on_ack(rudp, peer, out, out->mode.on_ack_data);
 			remove_packet(&peer->window, out);
-			printf("%s: removed: %d\n", rudp->name, ack);
 			break;
 		}
 		out = out->next;

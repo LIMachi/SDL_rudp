@@ -27,6 +27,7 @@ int	rudp_connect(t_rudp *rudp, const char ip[])
 	IPaddress	ipa;
 	int			id;
 	t_rudp_peer	*peer;
+	Uint32		tick;
 
 	if (rudp == NULL || ip == NULL)
 		return (RUDP_ERROR_NULL_POINTER);
@@ -45,9 +46,10 @@ int	rudp_connect(t_rudp *rudp, const char ip[])
 	peer->hand_shook = 0;
 	peer_switch_state(rudp, peer, RUDP_STATE_INIT);
 	peer->last_recv = SDL_GetTicks();
+	tick = peer->last_recv;
 	queue_syn_msg(rudp, peer);
 	SDL_UnlockMutex(rudp->peers[id].mutex);
-	while (peer->state == RUDP_STATE_INIT)
+	while (peer->state == RUDP_STATE_INIT && SDL_GetTicks() < tick + RUDP_SYN_TIMEOUT)
 		;
 	if (peer->state != RUDP_STATE_ACTIVE)
 		return (RUDP_CONNECTION_REFUSED);

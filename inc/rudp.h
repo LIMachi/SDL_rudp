@@ -3,8 +3,39 @@
 
 # include <SDL2/SDL_net.h>
 
+/*
+** delay after which a connetion is closed due to innactivity
+*/
+
 # define RUDP_CONNECTION_TIMEOUT 5000
-# define RUDP_MAXIMUM_DATA_SIZE 32768
+
+/*
+** maximum size of data a packet can transmit
+**   (not including UDP/IP and library headers)
+*/
+
+# define RUDP_MAXIMUM_DATA_SIZE 1024
+
+/*
+** maximum number of packet transiting between 2 peer
+**   (low (2~16) if frequent, high (32~512) if sparse)
+*/
+
+# define RUDP_MAX_WINDOW 4
+
+/*
+** delay after wich a syn packet is considered lost (default aggresive: 500ms,
+**   recommended: same as CONNECTION_TIMEOUT: around 5000ms)
+*/
+
+# define RUDP_SYN_TIMEOUT 500
+
+/*
+** delay between resending unacknowledged packets
+**   (default aggresive: 5ms, recommended 15ms ~ 25ms)
+*/
+
+# define RUDP_RESEND_TIMEOUT 30
 
 # define RUDP_OFFSET_TYPE 0
 # define RUDP_OFFSET_ACK 1
@@ -96,26 +127,6 @@ enum							e_type_bit
 
 #define RUDP_PEER_PORT 0x4242
 #define RUDP_SERVER_PORT 0x4444
-
-/*
-** maximum number of packet transiting between 2 peer
-*/
-
-#define RUDP_MAX_WINDOW 64
-
-/*
-** delay after wich a syn packet is considered lost (default aggresive: 500ms,
-**   recommended: same as CONNECTION_TIMEOUT: around 5000ms)
-*/
-
-#define RUDP_SYN_TIMEOUT 100
-
-/*
-** delay between resending unacknowledged packets (default aggresive: 5ms,
-**   recommended 30ms)
-*/
-
-#define RUDP_RESEND_TIMEOUT 5
 
 struct							s_queue_mode
 {
@@ -287,6 +298,7 @@ int								sender_thread(t_rudp *rudp);
 t_packet_out					*queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 										UDPpacket *packet, t_queue_mode mode);
 int								queue_syn_msg(t_rudp *rudp, t_rudp_peer *peer);
+int								queue_fin_msg(t_rudp *rudp, t_rudp_peer *peer);
 
 /*
 ** msg:
@@ -301,6 +313,7 @@ int								msg_no_connection(t_rudp *rudp, Uint32 target);
 */
 
 Uint32							get_my_local_ip(void);
+void							print_packet_info(int padding, UDPpacket *pack);
 void							stringify_ip(Uint32 addr, char buff[15]);
 const char						*stringify_rudp_error(
 													enum e_rudp_error err_code);

@@ -34,7 +34,6 @@ t_packet_out		*queue_packet(t_rudp *rudp, t_rudp_peer *peer,
 
 	if (mode.need_ack || mode.delay > 0)
 	{
-		// printf("%s: queuing packet with ack: %d\n", rudp->name, mode.ack);
 		i = -1;
 		if ((out = SDL_malloc(sizeof(t_packet_out))) == NULL)
 		{

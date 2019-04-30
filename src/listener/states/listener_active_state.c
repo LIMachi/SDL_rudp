@@ -27,7 +27,10 @@ int		listener_active_state(t_rudp *rudp, UDPpacket *pack, t_rudp_peer *peer)
 	else if (pack->data[0] == RUDP_TYPE_NULL)
 		peer->last_recv = SDL_GetTicks();
 	else if (pack->data[0] == RUDP_TYPE_FIN)
-		NULL; //disconnect
+	{
+		msg_acknowledge(rudp, pack->address.host, read_32(&pack->data[1]));
+		peer_switch_state(rudp, peer, RUDP_STATE_CLOSED);
+	}
 	else if (pack->data[0] == RUDP_TYPE_SYN)
 		msg_acknowledge(rudp, pack->address.host, read_32(&pack->data[1]));
 	return (0);

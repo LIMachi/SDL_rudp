@@ -44,11 +44,17 @@ int		peer_switch_state(t_rudp *rudp, t_rudp_peer *peer, Uint32 state)
 	printf("%s: new state: %s\n", rudp->name, stringify_rudp_state(state));
 	if (state == RUDP_STATE_CLOSED && peer->state != RUDP_STATE_CLOSED)
 	{
+		--rudp->used_connections;
 		printf("%s: removing peer\n", rudp->name);
 		peer->last_recv = 0;
 		peer->instigator = 0;
 		peer_destroy_window(rudp, &peer->window);
-		peer->window = (t_rudp_window){.received_data = NULL, .queue = NULL};
+		peer->window = (t_rudp_window){.received_data = NULL, .queue = NULL, .assembled_data = {.size = 0, .data = NULL, .cursor = 0}};
+	}
+	if (state == RUDP_STATE_INIT && peer->state == RUDP_STATE_CLOSED)
+	{
+		++rudp->used_connections;
+		printf("%s: new connection\n", rudp->name);
 	}
 	peer->state_function = state_functions[state];
 	peer->state = state;

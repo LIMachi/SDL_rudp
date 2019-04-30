@@ -8,6 +8,8 @@ t_packet_out	*remove_packet(t_rudp_window *window, t_packet_out *pack_out)
 {
 	t_packet_out	*r;
 
+	if (window == NULL)
+		return (NULL);
 	r = pack_out->next;
 	if (pack_out->prev != NULL)
 		pack_out->prev->next = r;

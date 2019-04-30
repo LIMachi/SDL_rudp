@@ -11,17 +11,36 @@ int		received_data(t_rudp *rudp, t_rudp_peer *peer, UDPpacket *pack)
 	Uint32			ack;
 	Uint16			psize;
 
+	// printf("%s: received:\n", rudp->name);
+	// print_packet_info(2, pack);
 	(void)rudp;
 	ack = read_32(&pack->data[RUDP_OFFSET_ACK]);
-	if (ack <= peer->target_seq_no) //already treated
+	// printf("testing oldness: %d < %d\n", ack, peer->target_seq_no);
+	if (ack < peer->target_seq_no) //already treated
+	{
+		// printf("YA OLD MATE\n");
 		return (0);
+	}
+	// printf(" *** *** *** *** treating new data\n");
 	if ((tmp = peer->window.received_data) != NULL)
 	{
-		if (tmp->seq_no < ack)
+		// printf("*** ** ** *** finding insert: %d\n", ack);
+		if (tmp->seq_no > ack) // need to be inserted first
+		{
+			// printf("** ** ** ** ** insert try: <%d> %d\n", ack, tmp->seq_no);
+			tmp = NULL;
+		}
+		else if (tmp->seq_no <= ack)
+		{
 			while (tmp->next != NULL && tmp->next->seq_no <= ack)
 				tmp = tmp->next;
-		if (tmp->seq_no == ack)
-			return (0); //duplicate, do not reincert it
+			if (tmp->seq_no == ack)
+			{
+				// printf("** ** ** ** ** duplicate\n");
+				return (0); //duplicate, do not reincert it
+			}
+			// printf("** ** ** ** ** insert try: %d <%d> %d\n", tmp->seq_no, ack, tmp->next!= NULL ? tmp->next->seq_no : -1);
+		}
 	}
 	psize = read_16(&pack->data[RUDP_OFFSET_SIZE]);
 	if ((out = SDL_malloc(sizeof(t_received_data) + psize)) == NULL)
@@ -32,6 +51,7 @@ int		received_data(t_rudp *rudp, t_rudp_peer *peer, UDPpacket *pack)
 	SDL_memcpy(out->data, &pack->data[RUDP_OFFSET_DATA], out->size);
 	if (tmp != NULL)
 	{
+		// printf("********* new node\n");
 		out->next = tmp->next;
 		tmp->next = out;
 		if (out->next != NULL)
@@ -39,7 +59,8 @@ int		received_data(t_rudp *rudp, t_rudp_peer *peer, UDPpacket *pack)
 	}
 	else
 	{
-		out->next = NULL;
+		// printf("********* new head\n");
+		out->next = peer->window.received_data;
 		peer->window.received_data = out;
 	}
 	return (0);

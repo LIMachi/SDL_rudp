@@ -15,7 +15,11 @@ int		rudp_receive(t_rudp *rudp, int id, void *data, int size)
 	Uint32			start;
 	Uint32			cuts;
 
+	// printf("id: %d\n", id);
+	// printf("rudp: %p\n", rudp);
 	peer = &rudp->peers[id];
+	// printf("peer: %p\n", peer);
+	// printf("mutex: %p\n", peer->mutex);
 	SDL_LockMutex(peer->mutex);
 	if (peer->state != RUDP_STATE_ACTIVE)
 	{
@@ -26,11 +30,14 @@ int		rudp_receive(t_rudp *rudp, int id, void *data, int size)
 	{
 		if ((size_t)size >= peer->window.assembled_data.size - peer->window.assembled_data.cursor)
 		{
-			SDL_memcpy(data, &peer->window.assembled_data.data[peer->window.assembled_data.cursor], peer->window.assembled_data.size - peer->window.assembled_data.cursor);
+			size = (int)(peer->window.assembled_data.size - peer->window.assembled_data.cursor);
+			SDL_memcpy(data, &peer->window.assembled_data.data[peer->window.assembled_data.cursor], (size_t)size);
 			SDL_free(peer->window.assembled_data.data);
 			peer->window.assembled_data.data = NULL;
+			peer->window.assembled_data.cursor = 0;
+			peer->window.assembled_data.size = 0;
 			SDL_UnlockMutex(peer->mutex);
-			return ((int)(peer->window.assembled_data.size - peer->window.assembled_data.cursor));
+			return (size);
 		}
 		else
 		{
@@ -40,13 +47,14 @@ int		rudp_receive(t_rudp *rudp, int id, void *data, int size)
 			return (size);
 		}
 	}
-	if (peer->window.received_data == NULL || peer->window.received_data->seq_start != peer->target_seq_no + 1) //data is not currently accessible, might be in the future or corrupt
+	if (peer->window.received_data == NULL || peer->window.received_data->seq_start != peer->target_seq_no) //data is not currently accessible, might be in the future or corrupt
 	{
 		// if (peer->window.received_data != NULL)
-		// 	printf("%p, %d %d\n", peer->window.received_data, peer->window.received_data->seq_start, peer->target_seq_no);
+		// 	printf("%p, %d %d %d\n", peer->window.received_data, peer->window.received_data->seq_start, peer->window.received_data->seq_no, peer->target_seq_no);
 		SDL_UnlockMutex(peer->mutex);
 		return (0);
 	}
+	// printf("******************************** testing completness of first block ********************************\n");
 	peer->window.assembled_data.size = 0;
 	tmp = peer->window.received_data;
 	start = tmp->seq_start;
@@ -57,10 +65,12 @@ int		rudp_receive(t_rudp *rudp, int id, void *data, int size)
 		peer->window.assembled_data.size += tmp->size;
 		tmp = tmp->next;
 	}
+	// printf("*** ** *** ** found %d cuts on %d (total size: %d)\n", cuts, peer->window.received_data->seq_len, (int)peer->window.assembled_data.size);
 	if (cuts == peer->window.received_data->seq_len) //seems all is there, time to reassemble
 	{
+		// printf("******************************* found complete data **********************************\n");
 		tmp = peer->window.received_data;
-		peer->target_seq_no = tmp->seq_start + tmp->seq_len - 1;
+		peer->target_seq_no = tmp->seq_start + tmp->seq_len;
 		peer->window.assembled_data.cursor = 0;
 		if (peer->window.assembled_data.size <= (size_t)size)
 			peer->window.assembled_data.data = data; //dirty trick
@@ -79,8 +89,9 @@ int		rudp_receive(t_rudp *rudp, int id, void *data, int size)
 				tmp->prev = NULL;
 			SDL_free(tmp_free);
 		}
-		if (tmp != NULL)
-			peer->window.received_data = tmp;
+		peer->window.received_data = tmp;
+		if (size > (int)peer->window.assembled_data.cursor)
+			size = (int)peer->window.assembled_data.cursor;
 		if (peer->window.assembled_data.data == data) //dirty trick
 			peer->window.assembled_data.data = NULL;
 		else
@@ -89,7 +100,7 @@ int		rudp_receive(t_rudp *rudp, int id, void *data, int size)
 			peer->window.assembled_data.cursor = (size_t)size;
 		}
 		SDL_UnlockMutex(peer->mutex);
-		return ((int)peer->window.assembled_data.cursor);
+		return (/*(int)peer->window.assembled_data.cursor*/size);
 	}
 	SDL_UnlockMutex(peer->mutex);
 	return (0);
