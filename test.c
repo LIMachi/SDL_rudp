@@ -6,33 +6,22 @@ static char test_msg[MSG_LEN] = "Lorem ipsum dolor sit amet, consectetur adipisc
 int	server(void *data)
 {
 	char	*running;
-	char	*ip;
 	t_rudp	*rudp_obj;
 	Uint32	tick;
-	// int		id;
 
 	running = data;
-	ip = &((char*)data)[1];
-	(void)ip;
 	rudp_obj = rudp_init("server", 0x4444, 0x4242, 1);
 	rudp_obj->initial_seq_no = 123456;
-	(void)rudp;
-	printf("server 1\n");
-	// id = rudp_connect(rudp_obj, ip);
-	printf("server 2\n");
 	tick = SDL_GetTicks();
 	while (*running || rudp_obj->used_connections)
 	{
-		if (SDL_GetTicks() > tick + 1)
+		if (SDL_GetTicks() > tick + 16)
 		{
 			rudp_send(rudp_obj, 0, test_msg, 8192 + 13);
 			tick = SDL_GetTicks();
 		}
 	}
-	printf("server 3\n");
 	rudp_close(rudp_obj);
-	// rudp_disconnect(rudp_obj, id);
-	printf("server 4\n");
 	return (0);
 }
 
@@ -42,30 +31,26 @@ int	client(void *data)
 	char	*ip;
 	t_rudp	*rudp_obj;
 	int		id;
-	// char	received[MSG_LEN + 10];
-	// int		l;
-	// int		total;
+	char	received[MSG_LEN + 10];
+	int		l;
+	int		total;
 
 	running = data;
 	ip = &((char*)data)[1];
 	rudp_obj = rudp_init("client", 0x4242, 0x4444, 1);
 	rudp_obj->initial_seq_no = 654321;
-	printf("client 1\n");
 	id = rudp_connect(rudp_obj, "127.0.0.1");
-	printf("client 2\n");
-	// total = 0;
-	while (id >= 0 && *running);
-		// if ((l = rudp_receive(rudp_obj, id, received, MSG_LEN + 10)) > 0)
-		// {
-		// 	if (l != MSG_LEN || SDL_memcmp(test_msg, received, MSG_LEN))
-		// 		exit(0 * printf("DA FAILURE %d '%.*s'\n", l, l, received));
-		// 	total += l;
-		// 	printf("(%d, %dM %dK %d)\n", l, total >> 20, (total >> 10) & 0x3FF, total & 0x3FF);
-		// }
-	printf("client 3\n");
+	total = 0;
+	while (id >= 0 && *running)
+		if ((l = rudp_receive(rudp_obj, id, received, MSG_LEN + 10)) > 0)
+		{
+			if (l != MSG_LEN || SDL_memcmp(test_msg, received, MSG_LEN))
+				exit(0 * printf("DA FAILURE %d '%.*s'\n", l, l, received));
+			total += l;
+			printf("(%d, %dM %dK %d)\n", l, total >> 20, (total >> 10) & 0x3FF, total & 0x3FF);
+		}
 	rudp_disconnect(rudp_obj, id);
 	rudp_close(rudp_obj);
-	printf("client 4\n");
 	return (0);
 }
 

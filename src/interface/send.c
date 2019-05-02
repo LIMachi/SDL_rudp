@@ -46,10 +46,7 @@ int		rudp_send(t_rudp *rudp, int id, void *data, Uint64 size)
 	while (++cut < len)
 	{
 		if (cut == len - 1)
-		{
 			psize = (Uint16)(size - cut * RUDP_MAXIMUM_DATA_SIZE);
-			// printf("******************* twig: %d\n", psize);
-		}
 		else
 			psize = RUDP_MAXIMUM_DATA_SIZE;
 		pack = SDL_malloc(sizeof(UDPpacket) + psize + RUDP_OFFSET_DATA);

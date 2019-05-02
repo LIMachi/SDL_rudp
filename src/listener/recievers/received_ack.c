@@ -10,10 +10,6 @@ int		received_ack(t_rudp *rudp, t_rudp_peer *peer, Uint32 ack)
 	int				i;
 	t_packet_out	*out;
 
-	if (ack == 654323)
-	{
-		printf("test\n");
-	}
 	i = -1;
 	out = peer->window.queue;
 	peer->last_recv = SDL_GetTicks();

@@ -5,7 +5,6 @@ int	acknowledged_fin(t_rudp* rudp, t_rudp_peer *peer, t_packet_out *unused1,
 {
 	(void)unused1;
 	(void)unused2;
-	printf("%s: aknowledged fin\n", rudp->name);
 	peer_switch_state(rudp, peer, RUDP_STATE_CLOSED);
 	return (0);
 }
@@ -15,7 +14,6 @@ int	timed_out_fin(t_rudp* rudp, t_rudp_peer *peer, t_packet_out *unused1,
 {
 	(void)unused1;
 	(void)unused2;
-	printf("%s: timedout fin\n", rudp->name);
 	peer_switch_state(rudp, peer, RUDP_STATE_CLOSED);
 	return (0);
 }
@@ -25,7 +23,6 @@ int	queue_fin_msg(t_rudp *rudp, t_rudp_peer *peer)
 	UDPpacket	*pack;
 	Uint32		ack;
 
-	printf("%s: queue fin: %d\n", rudp->name, peer->seq_no + 1);
 	if ((pack = SDL_malloc(sizeof(UDPpacket) + 5)) == NULL)
 		return (-1);
 	ack = ++peer->seq_no;
