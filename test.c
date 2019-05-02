@@ -39,7 +39,7 @@ int	client(void *data)
 	ip = &((char*)data)[1];
 	rudp_obj = rudp_init("client", 0x4242, 0x4444, 1);
 	rudp_obj->initial_seq_no = 654321;
-	id = rudp_connect(rudp_obj, "127.0.0.1");
+	id = rudp_connect(rudp_obj, ip);
 	total = 0;
 	while (id >= 0 && *running)
 		if ((l = rudp_receive(rudp_obj, id, received, MSG_LEN + 10)) > 0)
@@ -54,23 +54,43 @@ int	client(void *data)
 	return (0);
 }
 
+//localhost: 127.0.0.1
+
 int	main(int argc, char *argv[])
 {
-	char		ip[16];
-	SDL_Thread	*s;
-	SDL_Thread	*c;
+	char		ip[17];
+	char		local_ip[16];
+	SDL_Thread	*t;
 
-	(void)argc;
-	(void)argv;
+	if (argc < 2 || (SDL_strcmp(argv[1], "client") && SDL_strcmp(argv[1], "server")))
+	{
+		printf("%s [client <ip>] [server]\n", argv[0]);
+		return (0);
+	}
 	SDL_Init(SDL_INIT_EVERYTHING);
-	stringify_ip(get_my_local_ip(), &ip[1]);
-	printf("local ip: %s\n", &ip[1]);
+	stringify_ip(get_my_local_ip(), local_ip);
+	printf("local ip: %s\n", local_ip);
 	ip[0] = 1;
-	s = SDL_CreateThread(server, "server", ip);
-	c = SDL_CreateThread(client, "client", ip);
-	SDL_Delay(10000);
-	ip[0] = 0;
-	SDL_WaitThread(c, NULL);
-	SDL_WaitThread(s, NULL);
+	if (!SDL_strcmp(argv[1], "client"))
+	{
+		if (argc > 2)
+		{
+			SDL_memcpy(&ip[1], argv[2], SDL_strlen(argv[2]) < 15 ? SDL_strlen(argv[2]) + 1 : 15);
+			ip[16] = '\0';
+		}
+		else
+			SDL_memcpy(&ip[1], "127.0.0.1", 10);
+		t = SDL_CreateThread(client, "client", ip);
+		SDL_Delay(30000);
+		ip[0] = 0;
+		SDL_WaitThread(t, NULL);
+	}
+	else
+	{
+		t = SDL_CreateThread(client, "server", ip);
+		SDL_Delay(30000);
+		ip[0] = 0;
+		SDL_WaitThread(t, NULL);
+	}
 	return (0);
 }
