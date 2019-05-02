@@ -23,7 +23,8 @@ int		received_ack(t_rudp *rudp, t_rudp_peer *peer, Uint32 ack)
 		{
 			if (out->mode.on_ack != NULL)
 				out->mode.on_ack(rudp, peer, out, out->mode.on_ack_data);
-			remove_packet(&peer->window, out);
+			if (peer->state != RUDP_STATE_CLOSED)
+				remove_packet(&peer->window, out);
 			break;
 		}
 		out = out->next;

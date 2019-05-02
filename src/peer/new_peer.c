@@ -16,7 +16,7 @@ t_rudp_peer	*new_peer(t_rudp *rudp, IPaddress target)
 			out->last_recv = SDL_GetTicks();
 			out->seq_no = rudp->initial_seq_no;
 			out->window = (t_rudp_window){.queue = NULL, .received_data = NULL,
-				.assembled_data = {.data = NULL}};
+				.assembled_data = {.size = 0, .data = NULL, .cursor = 0}};
 			return (out);
 		}
 	return (NULL);

@@ -24,7 +24,7 @@ int		init_peers(t_rudp *out)
 	i = (Uint32)-1;
 	while (++i < out->nb_connections)
 	{
-		printf("BIG TEST\n");
+		// printf("BIG TEST\n");
 		out->peers[i] = (t_rudp_peer){
 			.window = {.received_data = NULL, .queue = NULL,
 				.assembled_data = {.data = NULL}},
@@ -33,7 +33,7 @@ int		init_peers(t_rudp *out)
 			.state_function = listener_closed_state, .targeted = {}};
 		if (out->peers[i].mutex == NULL)
 			return (-1);
-		printf("BIG TEST OK: %p\n", out->peers[i].mutex);
+		// printf("BIG TEST OK: %p\n", out->peers[i].mutex);
 	}
 	return (0);
 }
