@@ -40,6 +40,8 @@ int	client(void *data)
 	rudp_obj = rudp_init("client", 0x4242, 0x4444, 1);
 	rudp_obj->initial_seq_no = 654321;
 	id = rudp_connect(rudp_obj, ip);
+	if (id < 0)
+		printf("fail to connect\n");
 	total = 0;
 	while (id >= 0 && *running)
 		if ((l = rudp_receive(rudp_obj, id, received, MSG_LEN + 10)) > 0)
@@ -81,16 +83,11 @@ int	main(int argc, char *argv[])
 		else
 			SDL_memcpy(&ip[1], "127.0.0.1", 10);
 		t = SDL_CreateThread(client, "client", ip);
-		SDL_Delay(30000);
-		ip[0] = 0;
-		SDL_WaitThread(t, NULL);
 	}
 	else
-	{
-		t = SDL_CreateThread(client, "server", ip);
-		SDL_Delay(30000);
-		ip[0] = 0;
-		SDL_WaitThread(t, NULL);
-	}
+		t = SDL_CreateThread(server, "server", ip);
+	SDL_Delay(15000);
+	ip[0] = 0;
+	SDL_WaitThread(t, NULL);
 	return (0);
 }
