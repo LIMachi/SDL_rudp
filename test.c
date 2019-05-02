@@ -8,13 +8,20 @@ int	server(void *data)
 	char	*running;
 	t_rudp	*rudp_obj;
 	Uint32	tick;
+	int		cc;
 
 	running = data;
 	rudp_obj = rudp_init("server", 0x4444, 0x4242, 1);
 	rudp_obj->initial_seq_no = 123456;
 	tick = SDL_GetTicks();
+	cc = 0;
 	while (*running || rudp_obj->used_connections)
 	{
+		if (cc == 0 && rudp_obj->used_connections)
+		{
+			printf("client detected\n");
+			cc = 1;
+		}
 		if (SDL_GetTicks() > tick + 16)
 		{
 			rudp_send(rudp_obj, 0, test_msg, 8192 + 13);
@@ -49,7 +56,7 @@ int	client(void *data)
 			if (l != MSG_LEN || SDL_memcmp(test_msg, received, MSG_LEN))
 				exit(0 * printf("DA FAILURE %d '%.*s'\n", l, l, received));
 			total += l;
-			printf("(%d, %dM %dK %d)\n", l, total >> 20, (total >> 10) & 0x3FF, total & 0x3FF);
+			printf("%dM %dK %d\n", total >> 20, (total >> 10) & 0x3FF, total & 0x3FF);
 		}
 	rudp_disconnect(rudp_obj, id);
 	rudp_close(rudp_obj);
@@ -83,11 +90,16 @@ int	main(int argc, char *argv[])
 		else
 			SDL_memcpy(&ip[1], "127.0.0.1", 10);
 		t = SDL_CreateThread(client, "client", ip);
+		SDL_Delay(30000);
+		ip[0] = 0;
+		SDL_WaitThread(t, NULL);
 	}
 	else
+	{
 		t = SDL_CreateThread(server, "server", ip);
-	SDL_Delay(15000);
-	ip[0] = 0;
-	SDL_WaitThread(t, NULL);
+		SDL_Delay(30000);
+		ip[0] = 0;
+		SDL_WaitThread(t, NULL);
+	}
 	return (0);
 }

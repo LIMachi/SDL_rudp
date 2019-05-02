@@ -28,7 +28,7 @@
 **   recommended: same as CONNECTION_TIMEOUT: around 5000ms)
 */
 
-# define RUDP_SYN_TIMEOUT 500
+# define RUDP_SYN_TIMEOUT 5000
 
 /*
 ** delay between resending unacknowledged packets
