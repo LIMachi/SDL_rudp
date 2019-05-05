@@ -14,7 +14,7 @@
 **   (not including UDP/IP and library headers)
 */
 
-# define RUDP_MAXIMUM_DATA_SIZE 1024
+# define RUDP_MAXIMUM_DATA_SIZE 128
 
 /*
 ** maximum number of packet transiting between 2 peer
