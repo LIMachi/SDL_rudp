@@ -35,7 +35,7 @@
 **   (default aggresive: 5ms, recommended 15ms ~ 25ms)
 */
 
-# define RUDP_RESEND_TIMEOUT 15
+# define RUDP_RESEND_TIMEOUT 10
 
 # define RUDP_OFFSET_TYPE 0
 # define RUDP_OFFSET_ACK 1
@@ -206,21 +206,41 @@ struct							s_rudp_peer
 	t_rudp_window				window;
 };
 
+/*
+** callbacks:
+*/
+
+typedef int						(*t_connection_attempt_callback)(t_rudp *,
+																	UDPpacket *,
+																	void *);
+
+typedef int						(*t_received_free_packet_callback)(t_rudp *,
+																	UDPpacket *,
+																	void *);
+
+/*
+** main object:
+*/
+
 struct							s_rudp
 {
-	Uint16						port_in;
-	Uint16						port_out;
-	UDPsocket					listener_socket;
-	UDPsocket					sender_socket;
-	Uint32						nb_connections;
-	Uint32						used_connections;
-	int							running;
-	Uint32						initial_seq_no;
-	t_rudp_peer					*peers;
-	SDL_Thread					*listener_thread;
-	SDL_Thread					*sender_thread;
-	char						*name;
-	enum e_rudp_error			errno;
+	Uint16							port_in;
+	Uint16							port_out;
+	UDPsocket						listener_socket;
+	UDPsocket						sender_socket;
+	Uint32							nb_connections;
+	Uint32							used_connections;
+	int								running;
+	Uint32							initial_seq_no;
+	t_rudp_peer						*peers;
+	SDL_Thread						*listener_thread;
+	SDL_Thread						*sender_thread;
+	char							*name;
+	enum e_rudp_error				errno;
+	t_connection_attempt_callback	connection_attempt_callback;
+	void							*connection_attempt_user_data;
+	t_received_free_packet_callback	received_free_packet_callback;
+	void							*received_free_packet_user_data;
 };
 
 /*
@@ -237,6 +257,18 @@ int								rudp_send(t_rudp *rudp, int id, void *data,
 											Uint64 size);
 int								rudp_receive(t_rudp *rudp, int id, void *data,
 											int max_size);
+int								rudp_send_free(t_rudp *rudp, IPaddress target,
+												int size, void *data);
+int								rudp_attach_free_receiver(t_rudp *rudp,
+						t_received_free_packet_callback cb, void *user_data);
+
+/*
+** return 0: connection validated
+** return non-null: connection refused
+*/
+
+int								rudp_attach_connection_attempt_receiver(
+			t_rudp *rudp, t_connection_attempt_callback cb, void *user_data);
 
 /*
 ** common:

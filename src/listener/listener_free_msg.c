@@ -7,6 +7,6 @@
 
 void	listener_free_msg(t_rudp *rudp, UDPpacket *pack)
 {
-	(void)rudp;
-	(void)pack;
+	if (rudp->received_free_packet_callback != NULL)
+		rudp->received_free_packet_callback(rudp, pack, rudp->received_free_packet_user_data);
 }

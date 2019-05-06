@@ -29,6 +29,11 @@ int		listener_closed_state(t_rudp *rudp, UDPpacket *pack, t_rudp_peer *peer)
 		msg_acknowledge(rudp, pack->address.host, read_32(&pack->data[1]));
 		if (peer == NULL)
 		{
+			if (rudp->connection_attempt_callback != NULL && rudp->connection_attempt_callback(rudp, pack, rudp->connection_attempt_user_data)) //refused connection
+			{
+				msg_no_connection(rudp, pack->address.host);
+				return (0);
+			}
 			new = 1;
 			peer = new_peer(rudp, pack->address);
 		}
