@@ -55,3 +55,4 @@ dkms.conf
 .srcs
 CMakeLists.txt
 cmake-build-debug
+*.bin

@@ -26,7 +26,7 @@ int	server(void *data)
 			printf("client detected\n");
 			cc = 1;
 		}
-		if (SDL_GetTicks() > tick + 16)
+		if (SDL_GetTicks() > tick + 33)
 		{
 			rudp_send(rudp_obj, 0, test_msg, 8192 + 13);
 			tick = SDL_GetTicks();

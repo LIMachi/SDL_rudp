@@ -14,7 +14,7 @@
 **   (not including UDP/IP and library headers)
 */
 
-# define RUDP_MAXIMUM_DATA_SIZE 128
+# define RUDP_MAXIMUM_DATA_SIZE 1024
 
 /*
 ** maximum number of packet transiting between 2 peer
@@ -35,7 +35,7 @@
 **   (default aggresive: 5ms, recommended 15ms ~ 25ms)
 */
 
-# define RUDP_RESEND_TIMEOUT 30
+# define RUDP_RESEND_TIMEOUT 15
 
 # define RUDP_OFFSET_TYPE 0
 # define RUDP_OFFSET_ACK 1
