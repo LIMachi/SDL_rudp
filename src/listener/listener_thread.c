@@ -78,7 +78,7 @@ int		listener_thread(t_rudp *rudp)
 					SDL_UnlockMutex(peer->mutex);
 			}
 		}
-		SDL_Delay(2);
+		// SDL_Delay(2);
 	}
 	SDLNet_FreePacket(pack);
 	return (0);

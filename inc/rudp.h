@@ -64,7 +64,7 @@ enum							e_rudp_error
 	RUDP_CONNECTION_REFUSED = -8
 };
 
-enum							e_state
+enum							e_rudp_state
 {
 	RUDP_STATE_INIT,
 	RUDP_STATE_ACTIVE,
@@ -349,7 +349,7 @@ void							print_packet_info(int padding, UDPpacket *pack);
 void							stringify_ip(Uint32 addr, char buff[15]);
 const char						*stringify_rudp_error(
 													enum e_rudp_error err_code);
-const char						*stringify_rudp_state(enum e_state state);
+const char						*stringify_rudp_state(enum e_rudp_state state);
 const char						*stringify_type(enum e_type type);
 int								in_set(int v, size_t l, int s[]);
 Uint16							read_16(const Uint8 *data);

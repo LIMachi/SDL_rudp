@@ -73,6 +73,10 @@ t_rudp	*rudp(Uint16 port_in, Uint16 port_out,
 	if ((out->sender_socket = SDLNet_UDP_Open(0)) == NULL)
 		return (rudp_fail(out));
 	out->used_connections = 0;
+	out->received_free_packet_user_data = NULL;
+	out->received_free_packet_callback = NULL;
+	out->connection_attempt_callback = NULL;
+	out->connection_attempt_user_data = NULL;
 	return (out);
 }
 

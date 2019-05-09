@@ -57,7 +57,7 @@ int		sender_thread(t_rudp *rudp)
 				}
 				SDL_UnlockMutex(rudp->peers[i].mutex);
 			}
-		SDL_Delay(1);
+		// SDL_Delay(1);
 	}
 	return (0);
 }
